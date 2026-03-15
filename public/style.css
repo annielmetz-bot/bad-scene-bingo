@@ -3,7 +3,7 @@
    Editorial theme: warm neutrals, charcoal, amber
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,900;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Abril+Fatface&family=IM+Fell+English:ital@1&display=swap');
 
 :root {
   --bg:         #F8F7F4;
@@ -91,22 +91,33 @@ html, body {
 .film-strip { display: none; }
 
 .logo {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 3.5rem;
-  font-weight: 900;
-  letter-spacing: -1px;
-  line-height: 1.1;
+  font-family: 'Abril Fatface', Georgia, serif;
+  font-size: 3.6rem;
+  font-weight: 400; /* Abril Fatface only has one weight */
+  letter-spacing: -0.5px;
+  line-height: 1.05;
   color: #fff;
-  text-shadow: 0 2px 24px rgba(0,0,0,0.4);
-  margin: 0 0 0.6rem;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+  margin: 0 0 0.5rem;
   position: relative;
+}
+.logo::after {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 1px;
+  background: rgba(255,255,255,0.35);
+  margin: 0.55rem auto 0.5rem;
 }
 .logo span {
   display: block;
+  font-family: 'IM Fell English', Georgia, serif;
   font-style: italic;
-  letter-spacing: 8px;
-  font-size: 2.8rem;
-  color: rgba(255,255,255,0.88);
+  font-weight: 400;
+  letter-spacing: 10px;
+  font-size: 2.6rem;
+  color: rgba(255,255,255,0.82);
+  text-indent: 10px; /* compensate for letter-spacing on last char */
 }
 .tagline {
   color: rgba(255,255,255,0.82);
@@ -433,10 +444,9 @@ textarea {
 }
 
 .play-logo {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Abril Fatface', Georgia, serif;
   font-size: 1.35rem;
-  font-weight: 900;
-  font-style: italic;
+  font-weight: 400;
   white-space: nowrap;
   color: var(--text);
 }
