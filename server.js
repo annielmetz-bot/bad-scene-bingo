@@ -267,7 +267,15 @@ app.get('/api/health', async (req, res) => {
       console.error('DB health check failed:', e.message);
     }
   }
-  res.json({ ok: true, dbPool: !!db.pool, dbConnected, oauthEnabled });
+  res.json({
+    ok: true,
+    dbPool: !!db.pool,
+    dbConnected,
+    oauthEnabled,
+    clientIDPrefix:     GOOGLE_CLIENT_ID     ? GOOGLE_CLIENT_ID.slice(0, 12)     : 'MISSING',
+    clientSecretPrefix: GOOGLE_CLIENT_SECRET ? GOOGLE_CLIENT_SECRET.slice(0, 8)  : 'MISSING',
+    callbackURL: `${BASE_URL}/auth/google/callback`,
+  });
 });
 
 // SPA fallback
