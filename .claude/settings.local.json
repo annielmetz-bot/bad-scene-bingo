@@ -14,7 +14,9 @@
       "Bash(find /Users/a.metz -type d -name Bad* -o -name *bingo* -o -name *Toni*)",
       "Bash(find /Users/a.metz -type f -name *.json -o -name *.txt -o -name *.md)",
       "Bash(ls ~/.ssh/*.pub)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://bad-scene-bingo-production.up.railway.app/)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://bad-scene-bingo-production.up.railway.app/)",
+      "Bash(/Users/a.metz/.nvm/versions/node/v24.14.0/bin/npm install:*)",
+      "Bash(PATH=\"/Users/a.metz/.nvm/versions/node/v24.14.0/bin:$PATH\" npm install passport passport-google-oauth20 express-session connect-pg-simple pg --prefix \"/Users/a.metz/Desktop/Bad Scene Bingo\")"
     ]
   }
 }

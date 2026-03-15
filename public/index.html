@@ -20,12 +20,21 @@
       <div class="film-strip top"></div>
       <h1 class="logo">😬 Bad Scene<br><span>BINGO</span></h1>
       <p class="tagline">Find the humor. Survive together.</p>
+
+      <!-- Account bar -->
+      <div class="account-bar" id="account-bar">
+        <!-- filled by app.js based on auth state -->
+      </div>
+
       <div class="film-strip bottom"></div>
     </div>
 
-    <!-- Saved templates -->
+    <!-- Saved templates (local or cloud) -->
     <div id="templates-section" class="panel templates-panel hidden">
-      <h2>Your Saved Cards</h2>
+      <div class="templates-header">
+        <h2>Your Saved Cards</h2>
+        <span id="templates-sync-badge" class="sync-badge hidden">☁️ Synced</span>
+      </div>
       <ul id="templates-list" class="templates-list"></ul>
     </div>
 
@@ -56,6 +65,12 @@
       </div>
 
       <p class="create-note">Each player gets their own shuffled card. Share the link before the event starts — and may the odds be ever in your favor.</p>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboard-section" class="panel hidden">
+      <h2>🏆 All-Time Leaderboard</h2>
+      <ul id="leaderboard-list" class="leaderboard-list"></ul>
     </div>
   </div>
 
@@ -128,6 +143,20 @@
           <ul id="bingo-callers-list" class="bingo-callers-list"></ul>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ===== HISTORY SCREEN ===== -->
+  <div id="screen-history" class="screen">
+    <div class="hero small">
+      <h1 class="logo">😬 Bad Scene<br><span>BINGO</span></h1>
+    </div>
+    <div class="panel">
+      <div class="history-header">
+        <button class="btn btn-sm btn-back" id="btn-history-back">← Back</button>
+        <h2 id="history-title">My Game History</h2>
+      </div>
+      <ul id="history-list" class="history-list"></ul>
     </div>
   </div>
 

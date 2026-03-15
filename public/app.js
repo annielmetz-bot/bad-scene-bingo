@@ -14,11 +14,74 @@ const state = {
   players: [],        // [{ id, name, hasBingo }]
   hasBingo: false,
   bingoCallers: [],
+
+  // Auth
+  user: null,         // { id, name, email, avatar } or null
+  oauthEnabled: false,
 };
 
 const socket = io();
 
-// --------------- Persistence ---------------
+// --------------- Auth ---------------
+
+async function fetchMe() {
+  try {
+    const res = await fetch('/auth/me');
+    const data = await res.json();
+    state.oauthEnabled = data.oauthEnabled || false;
+    if (data.loggedIn) {
+      state.user = { id: data.id, name: data.name, email: data.email, avatar: data.avatar };
+    } else {
+      state.user = null;
+    }
+  } catch {
+    state.user = null;
+  }
+  renderAccountBar();
+}
+
+function renderAccountBar() {
+  const bar = document.getElementById('account-bar');
+  if (!bar) return;
+
+  if (state.user) {
+    bar.innerHTML = `
+      <div class="account-info">
+        ${state.user.avatar ? `<img class="account-avatar" src="${escHtml(state.user.avatar)}" alt="">` : ''}
+        <span class="account-name">${escHtml(state.user.name)}</span>
+        <button class="btn btn-sm btn-ghost" id="btn-history">📜 History</button>
+        <button class="btn btn-sm btn-ghost" id="btn-signout">Sign out</button>
+      </div>
+    `;
+    document.getElementById('btn-signout').addEventListener('click', signOut);
+    document.getElementById('btn-history').addEventListener('click', showHistory);
+  } else if (state.oauthEnabled) {
+    bar.innerHTML = `
+      <a href="/auth/google?returnTo=${encodeURIComponent(window.location.href)}" class="btn btn-sm btn-google">
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.616Z" fill="#4285F4"/>
+          <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
+          <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
+          <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
+        </svg>
+        Sign in with Google
+      </a>
+    `;
+  }
+}
+
+async function signOut() {
+  await fetch('/auth/logout', { method: 'POST' });
+  state.user = null;
+  renderAccountBar();
+  renderTemplates();
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// --------------- Persistence (localStorage) ---------------
 
 function saveCardState() {
   if (!state.roomId) return;
@@ -47,29 +110,85 @@ function saveName(name) {
   try { localStorage.setItem('bsb-player-name', name); } catch {}
 }
 
-// --------------- Templates ---------------
+// --------------- Local Templates ---------------
 
-function loadTemplates() {
+function loadLocalTemplates() {
   try { return JSON.parse(localStorage.getItem('bsb-templates') || '[]'); } catch { return []; }
 }
 
-function saveTemplate(title, items) {
-  const templates = loadTemplates();
+function saveLocalTemplate(title, items) {
+  const templates = loadLocalTemplates();
   const id = Date.now().toString();
   templates.unshift({ id, title, items });
   try { localStorage.setItem('bsb-templates', JSON.stringify(templates)); } catch {}
   return id;
 }
 
-function deleteTemplate(id) {
-  const templates = loadTemplates().filter(t => t.id !== id);
+function deleteLocalTemplate(id) {
+  const templates = loadLocalTemplates().filter(t => t.id !== id);
   try { localStorage.setItem('bsb-templates', JSON.stringify(templates)); } catch {}
 }
 
-function renderTemplates() {
-  const templates = loadTemplates();
+// --------------- Cloud Templates ---------------
+
+async function loadCloudTemplates() {
+  try {
+    const res = await fetch('/api/templates');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
+}
+
+async function saveCloudTemplate(title, items) {
+  const res = await fetch('/api/templates', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, items }),
+  });
+  if (!res.ok) throw new Error('Failed to save');
+  return res.json();
+}
+
+async function deleteCloudTemplate(id) {
+  await fetch(`/api/templates/${id}`, { method: 'DELETE' });
+}
+
+// On first login, offer to migrate localStorage templates to the cloud
+async function migrateLocalTemplatesToCloud() {
+  const local = loadLocalTemplates();
+  if (!local.length) return;
+  try {
+    await fetch('/api/templates/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ templates: local }),
+    });
+    // Clear local templates after successful migration
+    localStorage.removeItem('bsb-templates');
+    showToast('Your saved cards have been synced to your account! ☁️');
+  } catch {}
+}
+
+// --------------- Render Templates ---------------
+
+async function renderTemplates() {
   const section = document.getElementById('templates-section');
-  const list = document.getElementById('templates-list');
+  const list    = document.getElementById('templates-list');
+  const badge   = document.getElementById('templates-sync-badge');
+
+  let templates = [];
+  let isCloud   = false;
+
+  if (state.user) {
+    // Logged in — use cloud templates
+    templates = await loadCloudTemplates();
+    isCloud   = true;
+    if (badge) badge.classList.remove('hidden');
+  } else {
+    // Not logged in — use localStorage
+    templates = loadLocalTemplates();
+    if (badge) badge.classList.add('hidden');
+  }
 
   if (templates.length === 0) {
     section.classList.add('hidden');
@@ -92,7 +211,8 @@ function renderTemplates() {
 
     const count = document.createElement('span');
     count.className = 'template-count';
-    count.textContent = `${t.items.length} items`;
+    const itemArr = isCloud ? t.items : t.items;
+    count.textContent = `${Array.isArray(itemArr) ? itemArr.length : '?'} items`;
 
     info.appendChild(name);
     info.appendChild(count);
@@ -105,7 +225,7 @@ function renderTemplates() {
     loadBtn.textContent = '▶ Play';
     loadBtn.addEventListener('click', () => {
       cardTitleEl.value = t.title;
-      itemsInput.value = t.items.join('\n');
+      itemsInput.value  = (isCloud ? t.items : t.items).join('\n');
       itemsInput.dispatchEvent(new Event('input'));
       document.querySelector('.panel h2').scrollIntoView({ behavior: 'smooth' });
     });
@@ -114,8 +234,12 @@ function renderTemplates() {
     delBtn.className = 'btn btn-sm btn-delete';
     delBtn.textContent = '✕';
     delBtn.title = 'Delete saved card';
-    delBtn.addEventListener('click', () => {
-      deleteTemplate(t.id);
+    delBtn.addEventListener('click', async () => {
+      if (isCloud) {
+        await deleteCloudTemplate(t.id);
+      } else {
+        deleteLocalTemplate(t.id);
+      }
       renderTemplates();
     });
 
@@ -126,6 +250,68 @@ function renderTemplates() {
     list.appendChild(li);
   });
 }
+
+// --------------- Leaderboard ---------------
+
+async function renderLeaderboard() {
+  try {
+    const data = await fetch('/api/leaderboard').then(r => r.json());
+    const section = document.getElementById('leaderboard-section');
+    const list    = document.getElementById('leaderboard-list');
+
+    if (!Array.isArray(data) || data.length === 0) return;
+
+    section.classList.remove('hidden');
+    list.innerHTML = '';
+    data.forEach((p, i) => {
+      const li = document.createElement('li');
+      li.className = 'leaderboard-item';
+      li.innerHTML = `
+        <span class="lb-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}</span>
+        ${p.avatar ? `<img class="lb-avatar" src="${escHtml(p.avatar)}" alt="">` : '<span class="lb-avatar-placeholder"></span>'}
+        <span class="lb-name">${escHtml(p.name)}</span>
+        <span class="lb-stats">${p.first_bingo_count} 🎉 · ${p.bingo_count} bingo · ${p.games_played} games</span>
+      `;
+      list.appendChild(li);
+    });
+  } catch {}
+}
+
+// --------------- History screen ---------------
+
+async function showHistory() {
+  showScreen('screen-history');
+  const list = document.getElementById('history-list');
+  list.innerHTML = '<li class="history-loading">Loading…</li>';
+  try {
+    const data = await fetch('/api/history').then(r => r.json());
+    list.innerHTML = '';
+    if (!data.length) {
+      list.innerHTML = '<li class="history-empty">No games yet — go play!</li>';
+      return;
+    }
+    data.forEach(g => {
+      const li = document.createElement('li');
+      li.className = 'history-item' + (g.got_bingo ? ' got-bingo' : '');
+      const date = new Date(g.played_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      li.innerHTML = `
+        <div class="history-title">${escHtml(g.title)}</div>
+        <div class="history-meta">
+          ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
+          · ${g.player_count} player${g.player_count != 1 ? 's' : ''}
+          · ${date}
+        </div>
+      `;
+      list.appendChild(li);
+    });
+  } catch {
+    list.innerHTML = '<li class="history-empty">Could not load history.</li>';
+  }
+}
+
+document.getElementById('btn-history-back').addEventListener('click', () => {
+  showScreen('screen-create');
+});
 
 // --------------- Utility helpers ---------------
 
@@ -218,7 +404,6 @@ btnCreate.addEventListener('click', async () => {
     if (!res.ok) throw new Error('Server error');
     const { roomId } = await res.json();
 
-    // Redirect to join flow with the new room
     window.location.href = `/?room=${roomId}`;
   } catch (err) {
     btnCreate.disabled = false;
@@ -227,13 +412,23 @@ btnCreate.addEventListener('click', async () => {
   }
 });
 
-document.getElementById('btn-save-template').addEventListener('click', () => {
+document.getElementById('btn-save-template').addEventListener('click', async () => {
   const items = parseItems(itemsInput.value);
   if (items.length < 8) return;
   const title = cardTitleEl.value.trim() || 'Untitled Card';
-  saveTemplate(title, items);
+
+  if (state.user) {
+    try {
+      await saveCloudTemplate(title, items);
+      showToast(`"${title}" saved to your account! ☁️`);
+    } catch {
+      showToast('Could not save — check your connection.');
+    }
+  } else {
+    saveLocalTemplate(title, items);
+    showToast(`"${title}" saved locally!`);
+  }
   renderTemplates();
-  showToast(`"${title}" saved!`);
 });
 
 // --------------- Join screen ---------------
@@ -260,16 +455,20 @@ btnJoin.addEventListener('click', () => {
   // Restore saved card for this room if it exists
   const saved = loadCardState(state.roomId);
   if (saved && saved.playerName === name && saved.card?.length === 25) {
-    state.card = saved.card;
-    state.marked = new Set(saved.marked);
+    state.card    = saved.card;
+    state.marked  = new Set(saved.marked);
     state.hasBingo = saved.hasBingo || false;
   } else {
-    state.card = generateCard(state.items);
-    state.marked = new Set([12]); // FREE space always marked
+    state.card    = generateCard(state.items);
+    state.marked  = new Set([12]); // FREE space always marked
   }
 
-  // Join via socket
-  socket.emit('join-room', { roomId: state.roomId, name });
+  // Join via socket — pass userId if logged in so server can record stats
+  socket.emit('join-room', {
+    roomId: state.roomId,
+    name,
+    userId: state.user ? state.user.id : null,
+  });
 });
 
 // --------------- Share button ---------------
@@ -305,18 +504,18 @@ function renderGrid() {
   const grid = document.getElementById('bingo-grid');
   grid.innerHTML = '';
 
-  const bingoLines = state.hasBingo ? checkBingo(state.marked) : [];
+  const bingoLines   = state.hasBingo ? checkBingo(state.marked) : [];
   const bingoIndices = new Set(bingoLines.flat());
 
   state.card.forEach((item, i) => {
     const cell = document.createElement('div');
     cell.className = 'bingo-cell';
 
-    const isFree = item === 'FREE';
-    const isMarked = state.marked.has(i);
+    const isFree      = item === 'FREE';
+    const isMarked    = state.marked.has(i);
     const isBingoCell = bingoIndices.has(i);
 
-    if (isFree) cell.classList.add('free');
+    if (isFree)      cell.classList.add('free');
     if (isMarked && !isFree) cell.classList.add('marked');
     if (isBingoCell) cell.classList.add('bingo-line');
 
@@ -346,9 +545,8 @@ function checkAndHandleBingo() {
   if (state.hasBingo) return;
   const lines = checkBingo(state.marked);
   if (lines.length > 0) {
-    // Show the CALL BINGO button — player must confirm
     document.getElementById('btn-bingo').classList.remove('hidden');
-    renderGrid(); // re-render to show highlighted line
+    renderGrid();
   } else {
     document.getElementById('btn-bingo').classList.add('hidden');
   }
@@ -364,7 +562,7 @@ function renderPlayers() {
     const li = document.createElement('li');
     if (p.hasBingo) li.classList.add('has-bingo');
 
-    const dot = document.createElement('span');
+    const dot  = document.createElement('span');
     dot.className = 'player-dot';
 
     const name = document.createElement('span');
@@ -386,7 +584,7 @@ function renderPlayers() {
 
 function renderBingoCallers() {
   const section = document.getElementById('bingo-callers-section');
-  const list = document.getElementById('bingo-callers-list');
+  const list    = document.getElementById('bingo-callers-list');
 
   if (state.bingoCallers.length === 0) {
     section.classList.add('hidden');
@@ -405,10 +603,10 @@ function renderBingoCallers() {
 // --------------- Socket events ---------------
 
 socket.on('room-joined', ({ players, bingoCallers }) => {
-  state.players = players;
+  state.players      = players;
   state.bingoCallers = bingoCallers || [];
 
-  document.getElementById('play-title').textContent = state.roomTitle;
+  document.getElementById('play-title').textContent  = state.roomTitle;
   document.getElementById('play-player').textContent = `Playing as: ${state.playerName}`;
 
   if (state.hasBingo) showBingoCalled();
@@ -442,7 +640,6 @@ socket.on('player-left', ({ id, name }) => {
 });
 
 socket.on('bingo-called', ({ id, name, bingoCallers }) => {
-  // Update the caller's player entry
   const player = state.players.find(p => p.id === id);
   if (player) player.hasBingo = true;
 
@@ -458,12 +655,24 @@ socket.on('bingo-called', ({ id, name, bingoCallers }) => {
 // --------------- Routing / init ---------------
 
 async function init() {
+  // Load auth state first
+  await fetchMe();
+
+  // Check if this is the first login (local templates exist but no cloud ones yet)
+  if (state.user) {
+    const local = loadLocalTemplates();
+    if (local.length > 0) {
+      await migrateLocalTemplatesToCloud();
+    }
+  }
+
   const params = new URLSearchParams(window.location.search);
   const roomId = params.get('room');
 
   if (!roomId) {
     showScreen('screen-create');
-    renderTemplates();
+    await renderTemplates();
+    renderLeaderboard();
     itemsInput.focus();
     return;
   }
@@ -477,17 +686,17 @@ async function init() {
     if (!res.ok) throw new Error('Not found');
     const room = await res.json();
 
-    state.items = room.items;
+    state.items     = room.items;
     state.roomTitle = room.title;
 
     document.getElementById('join-room-title').textContent = room.title;
     document.getElementById('join-room-info').textContent =
       `${room.playerCount} player${room.playerCount !== 1 ? 's' : ''} already in this game`;
 
-    // Pre-fill name from last session
-    const savedName = loadSavedName();
-    if (savedName) {
-      playerNameEl.value = savedName;
+    // Pre-fill name: logged-in user's name, or last saved name
+    const prefillName = state.user ? state.user.name : loadSavedName();
+    if (prefillName) {
+      playerNameEl.value = prefillName;
       btnJoin.disabled = false;
     } else {
       playerNameEl.focus();
