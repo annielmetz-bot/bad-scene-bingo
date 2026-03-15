@@ -974,3 +974,111 @@ async function init() {
 }
 
 init();
+
+// --------------- Install prompt (PWA) ---------------
+
+let deferredInstallPrompt = null;
+
+// Capture Chrome/Android/Edge install event before it auto-fires
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Show banner after a short delay so the page has settled
+  setTimeout(() => showInstallBanner('android'), 2500);
+});
+
+// Listen for successful install
+window.addEventListener('appinstalled', () => {
+  removeInstallBanner();
+  deferredInstallPrompt = null;
+});
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+}
+
+function isIOSSafari() {
+  const ua = navigator.userAgent;
+  return /iphone|ipad|ipod/i.test(ua) &&
+         /safari/i.test(ua) &&
+         !/crios|fxios|opios|chrome/i.test(ua);
+}
+
+function installDismissed() {
+  try { return !!localStorage.getItem('bsb-install-dismissed'); } catch { return false; }
+}
+
+function markInstallDismissed() {
+  try { localStorage.setItem('bsb-install-dismissed', '1'); } catch {}
+}
+
+function removeInstallBanner() {
+  const el = document.getElementById('install-banner');
+  if (el) el.remove();
+}
+
+function showInstallBanner(type) {
+  if (isStandalone()) return;
+  if (installDismissed()) return;
+  if (document.getElementById('install-banner')) return; // already showing
+
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.className = 'install-banner';
+
+  if (type === 'ios') {
+    banner.innerHTML = `
+      <div class="install-banner-icon">😬</div>
+      <div class="install-banner-body">
+        <div class="install-banner-title">Add to Home Screen</div>
+        <div class="install-banner-sub">
+          Tap
+          <svg class="ios-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Share">
+            <path d="M8 12H3v9h18v-9h-5M12 3v12M8 7l4-4 4 4"/>
+          </svg>
+          then <strong>"Add to Home Screen"</strong>
+        </div>
+      </div>
+      <div class="install-banner-actions">
+        <button class="btn-install-dismiss" id="btn-install-dismiss" aria-label="Dismiss">✕</button>
+      </div>
+    `;
+  } else {
+    banner.innerHTML = `
+      <div class="install-banner-icon">😬</div>
+      <div class="install-banner-body">
+        <div class="install-banner-title">Install Bad Scene Bingo</div>
+        <div class="install-banner-sub">Add to your home screen for quick access at your next gathering.</div>
+      </div>
+      <div class="install-banner-actions">
+        <button class="btn btn-install" id="btn-install-now">Install</button>
+        <button class="btn-install-dismiss" id="btn-install-dismiss" aria-label="Dismiss">✕</button>
+      </div>
+    `;
+  }
+
+  document.body.appendChild(banner);
+
+  document.getElementById('btn-install-dismiss').addEventListener('click', () => {
+    markInstallDismissed();
+    removeInstallBanner();
+  });
+
+  if (type === 'android') {
+    document.getElementById('btn-install-now').addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      if (outcome === 'accepted') {
+        removeInstallBanner();
+      }
+    });
+  }
+}
+
+// iOS: show after a short delay on the create screen only
+if (isIOSSafari() && !isStandalone() && !installDismissed()) {
+  setTimeout(() => showInstallBanner('ios'), 3000);
+}

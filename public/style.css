@@ -702,6 +702,95 @@ textarea {
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
+/* ---- Install Banner ---- */
+.install-banner {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2.5rem);
+  max-width: 480px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  z-index: 998;
+  animation: toast-in 0.3s ease;
+}
+
+.install-banner-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.install-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.install-banner-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.15rem;
+}
+
+.install-banner-sub {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.install-banner-sub .ios-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  margin: 0 2px;
+  opacity: 0.7;
+}
+
+.install-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.btn-install {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.btn-install:hover {
+  background: #333;
+}
+
+.btn-install-dismiss {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.3rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.btn-install-dismiss:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .logo { font-size: 2.4rem; }
