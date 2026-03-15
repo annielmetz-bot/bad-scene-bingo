@@ -108,14 +108,14 @@ app.get('/auth/google', (req, res, next) => {
   passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
 
-app.get('/auth/google/callback', (req, res, next) => {
-  passport.authenticate('google', { failureRedirect: '/?auth=failed' })(req, res, async (err) => {
-    if (err) return next(err);
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/?auth=failed' }),
+  (req, res) => {
     const returnTo = req.session.returnTo || '/';
     delete req.session.returnTo;
     res.redirect(returnTo);
-  });
-});
+  }
+);
 
 app.post('/auth/logout', (req, res) => {
   req.logout(() => res.json({ ok: true }));
