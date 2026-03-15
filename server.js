@@ -28,7 +28,7 @@ const sessionSecret = process.env.SESSION_SECRET || 'bsb-dev-secret-change-me';
 let sessionStore;
 if (db.pool && process.env.NODE_ENV === 'production') {
   const PgSession = require('connect-pg-simple')(session);
-  sessionStore = new PgSession({ pool: db.pool, tableName: 'user_sessions' });
+  sessionStore = new PgSession({ pool: db.pool, tableName: 'user_sessions', createTableIfMissing: true });
 }
 
 app.use(session({
