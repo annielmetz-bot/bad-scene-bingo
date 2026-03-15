@@ -1,31 +1,33 @@
 /* =========================================================
    BAD SCENE BINGO – Styles
-   Modern light theme: warm, clean, a little playful
+   Editorial theme: warm neutrals, charcoal, amber
    ========================================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,900;1,900&display=swap');
+
 :root {
-  --bg:         #f4f0fb;
-  --surface:    #ffffff;
-  --surface2:   #f0ebfa;
-  --border:     #e2d9f3;
-  --accent:     #7c3aed;
-  --accent2:    #f97316;
-  --accent-glow: rgba(124,58,237,0.18);
-  --gold:       #f59e0b;
-  --gold-light: #fef3c7;
-  --success:    #10b981;
-  --text:       #1e1b2e;
-  --text-mid:   #4b4569;
-  --text-dim:   #9288ae;
-  --cell-bg:    #ffffff;
-  --cell-hover: #f5f0ff;
-  --cell-mark:  #7c3aed;
-  --cell-free:  #f97316;
-  --radius:     12px;
-  --radius-lg:  18px;
-  --shadow-sm:  0 1px 4px rgba(124,58,237,0.07), 0 2px 12px rgba(0,0,0,0.06);
-  --shadow:     0 4px 20px rgba(124,58,237,0.1), 0 1px 4px rgba(0,0,0,0.06);
-  --shadow-lg:  0 8px 32px rgba(124,58,237,0.15), 0 2px 8px rgba(0,0,0,0.08);
+  --bg:         #F8F7F4;
+  --surface:    #FFFFFF;
+  --surface2:   #F1F0ED;
+  --border:     #E5E3DE;
+  --accent:     #1A1A1A;
+  --accent2:    #B45309;
+  --accent-glow: rgba(26,26,26,0.08);
+  --gold:       #B45309;
+  --gold-light: #FEF3C7;
+  --success:    #166534;
+  --text:       #1A1A1A;
+  --text-mid:   #44403C;
+  --text-dim:   #A8A29E;
+  --cell-bg:    #FFFFFF;
+  --cell-hover: #F5F4F1;
+  --cell-mark:  #1A1A1A;
+  --cell-free:  #C2410C;
+  --radius:     10px;
+  --radius-lg:  14px;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 2px 10px rgba(0,0,0,0.04);
+  --shadow:     0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg:  0 8px 28px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
 }
 
 * {
@@ -38,7 +40,7 @@ html, body {
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -55,7 +57,7 @@ html, body {
 
 /* ---- Hero ---- */
 .hero {
-  background: linear-gradient(145deg, #6d28d9 0%, #7c3aed 40%, #a855f7 75%, #ec4899 100%);
+  background: linear-gradient(160deg, #111111 0%, #1c1c1c 60%, #2a2218 100%);
   text-align: center;
   padding: 3.5rem 1.5rem 3rem;
   position: relative;
@@ -66,8 +68,8 @@ html, body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 60%, rgba(180,83,9,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.03) 0%, transparent 50%);
   pointer-events: none;
 }
 .hero.small {
@@ -89,21 +91,22 @@ html, body {
 .film-strip { display: none; }
 
 .logo {
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: 3.5rem;
   font-weight: 900;
   letter-spacing: -1px;
   line-height: 1.1;
   color: #fff;
-  text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+  text-shadow: 0 2px 24px rgba(0,0,0,0.4);
   margin: 0 0 0.6rem;
   position: relative;
 }
 .logo span {
   display: block;
   font-style: italic;
-  letter-spacing: 6px;
-  font-size: 3rem;
-  color: rgba(255,255,255,0.92);
+  letter-spacing: 8px;
+  font-size: 2.8rem;
+  color: rgba(255,255,255,0.88);
 }
 .tagline {
   color: rgba(255,255,255,0.82);
@@ -180,7 +183,7 @@ textarea {
 
 input[type="text"]:focus,
 textarea:focus {
-  border-color: var(--accent);
+  border-color: var(--text-mid);
   box-shadow: 0 0 0 3px var(--accent-glow), var(--shadow-sm);
 }
 
@@ -248,14 +251,14 @@ textarea {
 }
 
 .btn-load {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: var(--accent);
   color: #fff;
   border: none;
   font-size: 0.82rem;
   padding: 0.4rem 0.8rem;
 }
 .btn-load:hover {
-  background: linear-gradient(135deg, #6d28d9, #9333ea);
+  background: #333333;
   color: #fff;
   border-color: transparent;
 }
@@ -279,8 +282,8 @@ textarea {
 
 .btn-secondary {
   background: var(--surface);
-  color: var(--accent);
-  border: 1.5px solid var(--accent);
+  color: var(--text);
+  border: 1.5px solid var(--border);
   width: 100%;
   padding: 0.75rem;
   font-size: 0.95rem;
@@ -288,6 +291,7 @@ textarea {
 }
 .btn-secondary:hover:not(:disabled) {
   background: var(--surface2);
+  border-color: var(--text-mid);
 }
 .btn-secondary:disabled {
   opacity: 0.35;
@@ -313,18 +317,19 @@ textarea {
 .btn:active { transform: scale(0.97); }
 
 .btn-primary {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: var(--accent);
   color: #fff;
   width: 100%;
   padding: 0.95rem;
   font-size: 1.05rem;
-  box-shadow: 0 4px 18px rgba(124,58,237,0.35);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
   border-radius: var(--radius-lg);
+  letter-spacing: 0.01em;
 }
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 6px 26px rgba(124,58,237,0.45);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
   transform: translateY(-1px);
-  background: linear-gradient(135deg, #6d28d9, #9333ea);
+  background: #333333;
 }
 .btn-primary:disabled {
   opacity: 0.38;
@@ -349,7 +354,7 @@ textarea {
 }
 
 .btn-bingo {
-  background: linear-gradient(135deg, #f59e0b, #f97316);
+  background: linear-gradient(135deg, #B45309, #C2410C);
   color: #fff;
   font-size: 1.35rem;
   font-weight: 900;
@@ -357,7 +362,7 @@ textarea {
   padding: 1rem 2rem;
   width: 100%;
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 24px rgba(249,115,22,0.4);
+  box-shadow: 0 4px 24px rgba(180,83,9,0.35);
   animation: bingo-pulse 1.2s ease-in-out infinite;
 }
 
@@ -374,8 +379,8 @@ textarea {
 }
 
 @keyframes bingo-pulse {
-  0%, 100% { box-shadow: 0 4px 20px rgba(249,115,22,0.3); transform: scale(1); }
-  50%       { box-shadow: 0 6px 32px rgba(249,115,22,0.55); transform: scale(1.01); }
+  0%, 100% { box-shadow: 0 4px 20px rgba(180,83,9,0.28); transform: scale(1); }
+  50%       { box-shadow: 0 6px 32px rgba(180,83,9,0.48); transform: scale(1.01); }
 }
 
 .create-note {
@@ -428,13 +433,12 @@ textarea {
 }
 
 .play-logo {
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.35rem;
   font-weight: 900;
+  font-style: italic;
   white-space: nowrap;
-  background: linear-gradient(135deg, #7c3aed, #ec4899);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text);
 }
 
 .play-info {
@@ -460,7 +464,7 @@ textarea {
 
 /* ---- Bingo Banner / Alert ---- */
 .bingo-banner {
-  background: linear-gradient(135deg, #f59e0b, #f97316);
+  background: linear-gradient(135deg, #B45309, #C2410C);
   color: #fff;
   text-align: center;
   font-size: 2.2rem;
@@ -472,7 +476,7 @@ textarea {
 }
 
 .bingo-alert {
-  background: #faf5ff;
+  background: var(--surface2);
   border-left: 4px solid var(--accent);
   padding: 0.6rem 1.1rem;
   font-size: 0.9rem;
@@ -537,22 +541,22 @@ textarea {
 
 .bingo-cell:hover:not(.free) {
   background: var(--cell-hover);
-  border-color: var(--accent);
+  border-color: var(--text-mid);
   transform: scale(1.04);
   box-shadow: var(--shadow);
-  color: var(--accent);
+  color: var(--text);
 }
 
 .bingo-cell.marked {
   background: var(--accent);
-  border-color: #6d28d9;
+  border-color: #333333;
   color: #fff;
-  box-shadow: 0 3px 14px rgba(124,58,237,0.35);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.22);
 }
 
 .bingo-cell.marked:hover {
-  background: #6d28d9;
-  border-color: #5b21b6;
+  background: #333333;
+  border-color: #1a1a1a;
   transform: scale(1.04);
 }
 
@@ -633,7 +637,7 @@ textarea {
 .players-list li span.me-badge {
   font-size: 0.68rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: var(--accent);
   color: #fff;
   padding: 2px 6px;
   border-radius: 4px;
@@ -690,8 +694,8 @@ textarea {
 
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
-  .logo { font-size: 2.6rem; }
-  .logo span { font-size: 2.3rem; }
+  .logo { font-size: 2.4rem; }
+  .logo span { font-size: 2.1rem; }
   .panel { padding: 2rem 1.5rem 2.5rem; }
   .hero { padding: 3rem 1.75rem 2.5rem; }
   .play-layout { flex-direction: column; padding: 1rem 1.25rem; }
@@ -781,10 +785,10 @@ textarea {
 
 .sync-badge {
   font-size: 0.75rem;
-  font-weight: 700;
-  color: #065f46;
-  background: #d1fae5;
-  border: 1px solid #6ee7b7;
+  font-weight: 600;
+  color: var(--text-mid);
+  background: var(--surface2);
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.2rem 0.6rem;
 }
