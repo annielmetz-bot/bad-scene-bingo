@@ -608,6 +608,8 @@ socket.on('room-joined', ({ players, bingoCallers }) => {
 
   document.getElementById('play-title').textContent  = state.roomTitle;
   document.getElementById('play-player').textContent = `Playing as: ${state.playerName}`;
+  document.querySelector('.play-layout').dataset.printTitle =
+    `${state.roomTitle || 'Bad Scene Bingo'} — ${state.playerName}`;
 
   if (state.hasBingo) showBingoCalled();
 

@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bad Scene Bingo</title>
+  <!-- Open Graph / social sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Bad Scene Bingo">
+  <meta property="og:description" content="Find the humor. Survive together. Real-time multiplayer bingo for awkward social situations.">
+  <meta property="og:image" content="https://bad-scene-bingo-production.up.railway.app/og-image.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Bad Scene Bingo">
+  <meta name="twitter:description" content="Find the humor. Survive together.">
+  <meta name="twitter:image" content="https://bad-scene-bingo-production.up.railway.app/og-image.svg">
   <link rel="stylesheet" href="/style.css">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#7c3aed">
@@ -39,7 +50,7 @@
     </div>
 
     <div class="panel">
-      <h2>Create a Card</h2>
+      <h2>Create a Bingo Card</h2>
 
       <div class="field">
         <label for="card-title">Game Title <span class="optional">(optional)</span></label>
@@ -110,6 +121,9 @@
       <div class="play-header-right">
         <button id="btn-share" class="btn btn-sm" title="Copy share link">
           📋 Share Link
+        </button>
+        <button id="btn-print" class="btn btn-sm" title="Print your card" onclick="window.print()">
+          🖨️ Print
         </button>
       </div>
     </header>
