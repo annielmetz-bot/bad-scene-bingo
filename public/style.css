@@ -434,7 +434,7 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  box-shadow: 0 1px 8px rgba(124,58,237,0.06);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
 }
 
 .play-header-left {
@@ -686,7 +686,7 @@ textarea {
   bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
-  background: #1e1b2e;
+  background: #1a1a1a;
   color: #fff;
   font-weight: 700;
   padding: 0.65rem 1.4rem;
@@ -771,7 +771,7 @@ textarea {
   align-items: center;
   gap: 0.55rem;
   background: #fff;
-  color: #1e1b2e;
+  color: #1a1a1a;
   border: none;
   border-radius: 999px;
   font-weight: 700;
@@ -955,7 +955,7 @@ textarea {
 
 .collab-item-own {
   border-color: var(--accent);
-  background: #faf5ff;
+  background: var(--surface2);
 }
 
 .collab-item-text {
@@ -1081,8 +1081,8 @@ textarea {
   }
 
   .bingo-cell.marked {
-    background: #ddd6fe;
-    border-color: #7c3aed;
+    background: #d1fae5;
+    border-color: #059669;
     color: #000;
     box-shadow: none;
   }

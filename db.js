@@ -170,6 +170,7 @@ async function getUserHistory(userId) {
 
 module.exports = {
   pool,
+  query,
   initSchema,
   findOrCreateUser,
   getTemplates,

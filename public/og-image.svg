@@ -1,15 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#6d28d9"/>
-      <stop offset="40%" style="stop-color:#7c3aed"/>
-      <stop offset="75%" style="stop-color:#a855f7"/>
-      <stop offset="100%" style="stop-color:#ec4899"/>
+      <stop offset="0%" style="stop-color:#111111"/>
+      <stop offset="60%" style="stop-color:#1c1c1c"/>
+      <stop offset="100%" style="stop-color:#2a2218"/>
     </linearGradient>
+    <radialGradient id="glow" cx="20%" cy="60%" r="55%">
+      <stop offset="0%" style="stop-color:#B45309;stop-opacity:0.18"/>
+      <stop offset="100%" style="stop-color:#111111;stop-opacity:0"/>
+    </radialGradient>
   </defs>
 
   <!-- Background -->
   <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
 
   <!-- Subtle grid pattern -->
   <g opacity="0.06">
@@ -31,16 +35,19 @@
         font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
         font-size="88" font-weight="900" fill="white" letter-spacing="-2">Bad Scene</text>
 
+  <!-- Divider line -->
+  <line x1="576" y1="318" x2="624" y2="318" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>
+
   <!-- BINGO -->
-  <text x="600" y="390" text-anchor="middle"
+  <text x="600" y="400" text-anchor="middle"
         font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
         font-size="96" font-weight="900" font-style="italic" fill="rgba(255,255,255,0.92)"
         letter-spacing="18">BINGO</text>
 
   <!-- Tagline -->
-  <text x="600" y="460" text-anchor="middle"
+  <text x="600" y="468" text-anchor="middle"
         font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="30" font-weight="400" font-style="italic" fill="rgba(255,255,255,0.72)">
+        font-size="30" font-weight="400" font-style="italic" fill="rgba(255,255,255,0.65)">
     Find the humor. Survive together.
   </text>
 </svg>
