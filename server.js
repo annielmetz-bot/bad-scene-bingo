@@ -18,6 +18,7 @@ const app        = express();
 const httpServer = createServer(app);
 const io         = new Server(httpServer);
 
+app.set('trust proxy', 1); // Railway sits behind a proxy; needed for secure session cookies
 app.use(express.json());
 
 // --------------- Session ---------------
