@@ -12,7 +12,9 @@
       "Bash(find ~/Library/Containers/com.apple.Notes -name *.database)",
       "Bash(find /Users/a.metz -type f \\\\\\(-name *toni* -o -name *Toni* \\\\\\))",
       "Bash(find /Users/a.metz -type d -name Bad* -o -name *bingo* -o -name *Toni*)",
-      "Bash(find /Users/a.metz -type f -name *.json -o -name *.txt -o -name *.md)"
+      "Bash(find /Users/a.metz -type f -name *.json -o -name *.txt -o -name *.md)",
+      "Bash(ls ~/.ssh/*.pub)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://bad-scene-bingo-production.up.railway.app/)"
     ]
   }
 }

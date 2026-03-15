@@ -196,6 +196,104 @@ textarea {
   text-align: right;
 }
 
+/* ---- Templates ---- */
+.templates-panel {
+  padding-bottom: 0.5rem;
+}
+
+.templates-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.template-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.template-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.template-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.template-count {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.template-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.btn-load {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff;
+  border: none;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.8rem;
+}
+.btn-load:hover {
+  background: linear-gradient(135deg, #6d28d9, #9333ea);
+  color: #fff;
+  border-color: transparent;
+}
+
+.btn-delete {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  padding: 0.4rem 0.6rem;
+}
+.btn-delete:hover {
+  color: #dc2626;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.create-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  border-radius: var(--radius-lg);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface2);
+}
+.btn-secondary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* ---- Buttons ---- */
 .btn {
   display: inline-flex;

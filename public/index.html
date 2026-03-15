@@ -23,6 +23,12 @@
       <div class="film-strip bottom"></div>
     </div>
 
+    <!-- Saved templates -->
+    <div id="templates-section" class="panel templates-panel hidden">
+      <h2>Your Saved Cards</h2>
+      <ul id="templates-list" class="templates-list"></ul>
+    </div>
+
     <div class="panel">
       <h2>Create a Card</h2>
 
@@ -40,9 +46,14 @@
         <div class="item-count"><span id="count-num">0</span> items entered</div>
       </div>
 
-      <button id="btn-create" class="btn btn-primary" disabled>
-        Create &amp; Get Share Link
-      </button>
+      <div class="create-actions">
+        <button id="btn-create" class="btn btn-primary" disabled>
+          Create &amp; Get Share Link
+        </button>
+        <button id="btn-save-template" class="btn btn-secondary" disabled>
+          💾 Save Card
+        </button>
+      </div>
 
       <p class="create-note">Each player gets their own shuffled card. Share the link before the event starts — and may the odds be ever in your favor.</p>
     </div>

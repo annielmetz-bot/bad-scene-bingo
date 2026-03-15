@@ -47,6 +47,86 @@ function saveName(name) {
   try { localStorage.setItem('bsb-player-name', name); } catch {}
 }
 
+// --------------- Templates ---------------
+
+function loadTemplates() {
+  try { return JSON.parse(localStorage.getItem('bsb-templates') || '[]'); } catch { return []; }
+}
+
+function saveTemplate(title, items) {
+  const templates = loadTemplates();
+  const id = Date.now().toString();
+  templates.unshift({ id, title, items });
+  try { localStorage.setItem('bsb-templates', JSON.stringify(templates)); } catch {}
+  return id;
+}
+
+function deleteTemplate(id) {
+  const templates = loadTemplates().filter(t => t.id !== id);
+  try { localStorage.setItem('bsb-templates', JSON.stringify(templates)); } catch {}
+}
+
+function renderTemplates() {
+  const templates = loadTemplates();
+  const section = document.getElementById('templates-section');
+  const list = document.getElementById('templates-list');
+
+  if (templates.length === 0) {
+    section.classList.add('hidden');
+    return;
+  }
+
+  section.classList.remove('hidden');
+  list.innerHTML = '';
+
+  templates.forEach(t => {
+    const li = document.createElement('li');
+    li.className = 'template-item';
+
+    const info = document.createElement('div');
+    info.className = 'template-info';
+
+    const name = document.createElement('span');
+    name.className = 'template-name';
+    name.textContent = t.title;
+
+    const count = document.createElement('span');
+    count.className = 'template-count';
+    count.textContent = `${t.items.length} items`;
+
+    info.appendChild(name);
+    info.appendChild(count);
+
+    const actions = document.createElement('div');
+    actions.className = 'template-actions';
+
+    const loadBtn = document.createElement('button');
+    loadBtn.className = 'btn btn-sm btn-load';
+    loadBtn.textContent = '▶ Play';
+    loadBtn.addEventListener('click', () => {
+      cardTitleEl.value = t.title;
+      itemsInput.value = t.items.join('\n');
+      itemsInput.dispatchEvent(new Event('input'));
+      document.querySelector('.panel h2').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-sm btn-delete';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Delete saved card';
+    delBtn.addEventListener('click', () => {
+      deleteTemplate(t.id);
+      renderTemplates();
+    });
+
+    actions.appendChild(loadBtn);
+    actions.appendChild(delBtn);
+    li.appendChild(info);
+    li.appendChild(actions);
+    list.appendChild(li);
+  });
+}
+
 // --------------- Utility helpers ---------------
 
 function shuffle(arr) {
@@ -109,7 +189,9 @@ const cardTitleEl  = document.getElementById('card-title');
 itemsInput.addEventListener('input', () => {
   const items = parseItems(itemsInput.value);
   countNum.textContent = items.length;
-  btnCreate.disabled = items.length < 8;
+  const enough = items.length >= 8;
+  btnCreate.disabled = !enough;
+  document.getElementById('btn-save-template').disabled = !enough;
 });
 
 function parseItems(text) {
@@ -143,6 +225,15 @@ btnCreate.addEventListener('click', async () => {
     btnCreate.textContent = 'Create & Get Share Link';
     alert('Something went wrong. Please try again.');
   }
+});
+
+document.getElementById('btn-save-template').addEventListener('click', () => {
+  const items = parseItems(itemsInput.value);
+  if (items.length < 8) return;
+  const title = cardTitleEl.value.trim() || 'Untitled Card';
+  saveTemplate(title, items);
+  renderTemplates();
+  showToast(`"${title}" saved!`);
 });
 
 // --------------- Join screen ---------------
@@ -371,8 +462,8 @@ async function init() {
   const roomId = params.get('room');
 
   if (!roomId) {
-    // Show create screen
     showScreen('screen-create');
+    renderTemplates();
     itemsInput.focus();
     return;
   }
