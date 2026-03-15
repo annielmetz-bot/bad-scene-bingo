@@ -221,6 +221,43 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000);
 
+// --------------- Collab sessions ---------------
+
+const collabSessions = new Map();
+
+// Clean up collab sessions older than 12 hours
+setInterval(() => {
+  const cutoff = Date.now() - 12 * 60 * 60 * 1000;
+  for (const [id, s] of collabSessions) {
+    if (s.createdAt < cutoff) collabSessions.delete(id);
+  }
+}, 60 * 60 * 1000);
+
+app.post('/api/collab', (req, res) => {
+  const { title } = req.body;
+  const collabId  = uuidv4().slice(0, 8).toUpperCase();
+  const hostToken = uuidv4().slice(0, 12);
+  collabSessions.set(collabId, {
+    id: collabId,
+    hostToken,
+    title: title || '',
+    items: [],
+    sockets: new Map(), // socketId -> { name }
+    createdAt: Date.now(),
+  });
+  res.json({ collabId, hostToken });
+});
+
+app.get('/api/collab/:id', (req, res) => {
+  const s = collabSessions.get(req.params.id.toUpperCase());
+  if (!s) return res.status(404).json({ error: 'Collab session not found or expired' });
+  res.json({
+    id:    s.id,
+    title: s.title,
+    items: s.items.map(({ id, text, contributor }) => ({ id, text, contributor })),
+  });
+});
+
 // Create a new room
 app.post('/api/rooms', (req, res) => {
   const { items, title } = req.body;
@@ -291,10 +328,29 @@ app.use((err, req, res, next) => {
 
 // --------------- Socket.io ---------------
 
+function broadcastCollabItems(collabId) {
+  const s = collabSessions.get(collabId);
+  if (!s) return;
+  const room = io.sockets.adapter.rooms.get(`collab:${collabId}`);
+  if (!room) return;
+  for (const sid of room) {
+    const sock = io.sockets.sockets.get(sid);
+    if (!sock) continue;
+    sock.emit('collab-update', {
+      items: s.items.map(({ id, text, contributor, socketId: ownerId }) => ({
+        id, text, contributor, isOwn: ownerId === sid,
+      })),
+      participantCount: s.sockets.size,
+    });
+  }
+}
+
 io.on('connection', (socket) => {
-  let currentRoomId = null;
-  let playerName    = null;
-  let userId        = null;  // set if the player is logged in (passed from client)
+  let currentRoomId   = null;
+  let playerName      = null;
+  let userId          = null;  // set if the player is logged in (passed from client)
+  let currentCollabId = null;
+  let collabName      = null;
 
   socket.on('join-room', ({ roomId, name, userId: uid }) => {
     const room = rooms.get(roomId.toUpperCase());
@@ -361,7 +417,97 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ----- Collab events -----
+
+  socket.on('join-collab', ({ collabId, name, hostToken }) => {
+    const s = collabSessions.get((collabId || '').toUpperCase());
+    if (!s) { socket.emit('collab-error', 'Collab session not found or expired.'); return; }
+
+    currentCollabId = collabId.toUpperCase();
+    collabName = name;
+    const isHost = s.hostToken === hostToken;
+    s.sockets.set(socket.id, { name, isHost });
+    socket.join(`collab:${currentCollabId}`);
+
+    socket.emit('collab-joined', {
+      isHost,
+      title: s.title,
+      items: s.items.map(({ id, text, contributor, socketId: ownerId }) => ({
+        id, text, contributor, isOwn: ownerId === socket.id,
+      })),
+      participantCount: s.sockets.size,
+    });
+    // Notify others of new participant count
+    socket.to(`collab:${currentCollabId}`).emit('collab-participant-update', {
+      participantCount: s.sockets.size,
+    });
+  });
+
+  socket.on('collab-add-item', ({ collabId, text }) => {
+    const s = collabSessions.get((collabId || '').toUpperCase());
+    if (!s) return;
+    const trimmed = (text || '').trim().slice(0, 120);
+    if (!trimmed) return;
+    s.items.push({ id: uuidv4().slice(0, 8), text: trimmed, contributor: collabName, socketId: socket.id });
+    broadcastCollabItems(currentCollabId);
+  });
+
+  socket.on('collab-edit-item', ({ collabId, itemId, text }) => {
+    const s = collabSessions.get((collabId || '').toUpperCase());
+    if (!s) return;
+    const item = s.items.find(i => i.id === itemId && i.socketId === socket.id);
+    if (!item) return;
+    const trimmed = (text || '').trim().slice(0, 120);
+    if (!trimmed) return;
+    item.text = trimmed;
+    broadcastCollabItems(currentCollabId);
+  });
+
+  socket.on('collab-remove-item', ({ collabId, itemId }) => {
+    const s = collabSessions.get((collabId || '').toUpperCase());
+    if (!s) return;
+    const idx = s.items.findIndex(i => i.id === itemId && i.socketId === socket.id);
+    if (idx === -1) return;
+    s.items.splice(idx, 1);
+    broadcastCollabItems(currentCollabId);
+  });
+
+  socket.on('collab-launch', ({ collabId, hostToken }) => {
+    const s = collabSessions.get((collabId || '').toUpperCase());
+    if (!s || s.hostToken !== hostToken) return;
+    if (s.items.length < 8) {
+      socket.emit('collab-error', 'Need at least 8 items to launch the game.');
+      return;
+    }
+    const roomId = uuidv4().slice(0, 8).toUpperCase();
+    rooms.set(roomId, {
+      id: roomId,
+      title: s.title || 'Bad Scene Bingo',
+      items: s.items.map(i => i.text),
+      players: new Map(),
+      bingoCallers: [],
+      createdAt: Date.now(),
+      gameId: null,
+      bingoOrder: 0,
+    });
+    io.to(`collab:${currentCollabId}`).emit('collab-launched', { roomId });
+    collabSessions.delete(currentCollabId);
+  });
+
+  // ----- Room / disconnect -----
+
   socket.on('disconnect', () => {
+    // Collab cleanup
+    if (currentCollabId) {
+      const s = collabSessions.get(currentCollabId);
+      if (s) {
+        s.sockets.delete(socket.id);
+        socket.to(`collab:${currentCollabId}`).emit('collab-participant-update', {
+          participantCount: s.sockets.size,
+        });
+      }
+    }
+
     if (!currentRoomId) return;
     const room = rooms.get(currentRoomId);
     if (!room) return;

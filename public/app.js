@@ -18,6 +18,9 @@ const state = {
   // Auth
   user: null,         // { id, name, email, avatar } or null
   oauthEnabled: false,
+
+  // Collab
+  collab: { id: null, hostToken: null, isHost: false, items: [] },
 };
 
 const socket = io();
@@ -378,6 +381,7 @@ itemsInput.addEventListener('input', () => {
   const enough = items.length >= 8;
   btnCreate.disabled = !enough;
   document.getElementById('btn-save-template').disabled = !enough;
+  document.getElementById('btn-collab-start').disabled = !enough;
 });
 
 function parseItems(text) {
@@ -430,6 +434,231 @@ document.getElementById('btn-save-template').addEventListener('click', async () 
   }
   renderTemplates();
 });
+
+document.getElementById('btn-collab-start').addEventListener('click', async () => {
+  const items = parseItems(itemsInput.value);
+  if (items.length < 8) return;
+  const title = cardTitleEl.value.trim();
+
+  try {
+    const res = await fetch('/api/collab', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    });
+    const { collabId, hostToken } = await res.json();
+    // Navigate to collab screen as host; items entered are pre-loaded from URL state
+    const params = new URLSearchParams({ collab: collabId, host: hostToken });
+    // Stash items in sessionStorage so host can add them after joining
+    try { sessionStorage.setItem('bsb-collab-items', JSON.stringify({ items, title })); } catch {}
+    window.location.href = '/?' + params.toString();
+  } catch {
+    alert('Could not start collaboration. Please try again.');
+  }
+});
+
+// --------------- Collab screen ---------------
+
+const collabNameInput   = document.getElementById('collab-name-input');
+const btnCollabJoin     = document.getElementById('btn-collab-join');
+const collabJoinError   = document.getElementById('collab-join-error');
+const collabItemInput   = document.getElementById('collab-item-input');
+const btnCollabAdd      = document.getElementById('btn-collab-add');
+const collabItemsList   = document.getElementById('collab-items-list');
+const collabItemCount   = document.getElementById('collab-item-count');
+const collabParticipant = document.getElementById('collab-participant-badge');
+const btnCollabLaunch   = document.getElementById('btn-collab-launch');
+const collabError       = document.getElementById('collab-error');
+
+collabNameInput.addEventListener('input', () => {
+  btnCollabJoin.disabled = collabNameInput.value.trim().length < 1;
+});
+collabNameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !btnCollabJoin.disabled) btnCollabJoin.click();
+});
+
+btnCollabJoin.addEventListener('click', () => {
+  const name = collabNameInput.value.trim();
+  if (!name) return;
+  btnCollabJoin.disabled = true;
+  socket.emit('join-collab', {
+    collabId:  state.collab.id,
+    name,
+    hostToken: state.collab.hostToken || '',
+  });
+});
+
+collabItemInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') btnCollabAdd.click();
+});
+
+btnCollabAdd.addEventListener('click', () => {
+  const text = collabItemInput.value.trim();
+  if (!text) return;
+  socket.emit('collab-add-item', { collabId: state.collab.id, text });
+  collabItemInput.value = '';
+  collabItemInput.focus();
+});
+
+document.getElementById('btn-collab-copy-link').addEventListener('click', () => {
+  const url = `${window.location.origin}/?collab=${state.collab.id}`;
+  navigator.clipboard.writeText(url).catch(() => {});
+  showToast('Invite link copied! 📋');
+});
+
+btnCollabLaunch.addEventListener('click', () => {
+  if (state.collab.items.length < 8) return;
+  btnCollabLaunch.disabled = true;
+  btnCollabLaunch.textContent = 'Launching…';
+  socket.emit('collab-launch', { collabId: state.collab.id, hostToken: state.collab.hostToken });
+});
+
+function renderCollabItems() {
+  const items = state.collab.items;
+  collabItemsList.innerHTML = '';
+  collabItemCount.textContent = items.length;
+  if (btnCollabLaunch) btnCollabLaunch.disabled = items.length < 8;
+
+  items.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'collab-item' + (item.isOwn ? ' collab-item-own' : '');
+    li.dataset.id = item.id;
+
+    if (item.isOwn) {
+      // Editable row
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'collab-item-input-inline';
+      input.value = item.text;
+      input.maxLength = 120;
+
+      const saveEdit = () => {
+        const newText = input.value.trim();
+        if (newText && newText !== item.text) {
+          socket.emit('collab-edit-item', { collabId: state.collab.id, itemId: item.id, text: newText });
+        } else if (!newText) {
+          input.value = item.text; // revert if empty
+        }
+      };
+      input.addEventListener('blur', saveEdit);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveEdit(); input.blur(); } });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-sm btn-delete collab-item-del';
+      delBtn.textContent = '✕';
+      delBtn.title = 'Remove your item';
+      delBtn.addEventListener('click', () => {
+        socket.emit('collab-remove-item', { collabId: state.collab.id, itemId: item.id });
+      });
+
+      li.appendChild(input);
+      li.appendChild(delBtn);
+    } else {
+      const text = document.createElement('span');
+      text.className = 'collab-item-text';
+      text.textContent = item.text;
+
+      const by = document.createElement('span');
+      by.className = 'collab-item-by';
+      by.textContent = item.contributor;
+
+      li.appendChild(text);
+      li.appendChild(by);
+    }
+
+    collabItemsList.appendChild(li);
+  });
+}
+
+function updateCollabParticipants(count) {
+  if (collabParticipant) {
+    collabParticipant.textContent = `${count} ${count === 1 ? 'person' : 'people'}`;
+  }
+}
+
+// Collab socket events
+socket.on('collab-joined', ({ isHost, title, items, participantCount }) => {
+  state.collab.isHost = isHost;
+  state.collab.items  = items;
+
+  document.getElementById('collab-join-panel').classList.add('hidden');
+  const workspace = document.getElementById('collab-workspace');
+  workspace.classList.remove('hidden');
+  document.getElementById('collab-workspace-title').textContent = title || 'Card Items';
+  updateCollabParticipants(participantCount);
+
+  if (isHost) {
+    document.getElementById('collab-host-actions').classList.remove('hidden');
+    // If host stashed items from the create screen, add them all now
+    try {
+      const stash = JSON.parse(sessionStorage.getItem('bsb-collab-items') || 'null');
+      if (stash && Array.isArray(stash.items)) {
+        stash.items.forEach(text => {
+          socket.emit('collab-add-item', { collabId: state.collab.id, text });
+        });
+        sessionStorage.removeItem('bsb-collab-items');
+      }
+    } catch {}
+  } else {
+    document.getElementById('collab-waiting-msg').classList.remove('hidden');
+  }
+
+  renderCollabItems();
+});
+
+socket.on('collab-update', ({ items, participantCount }) => {
+  state.collab.items = items;
+  renderCollabItems();
+  if (participantCount !== undefined) updateCollabParticipants(participantCount);
+});
+
+socket.on('collab-participant-update', ({ participantCount }) => {
+  updateCollabParticipants(participantCount);
+});
+
+socket.on('collab-launched', ({ roomId }) => {
+  window.location.href = `/?room=${roomId}`;
+});
+
+socket.on('collab-error', (msg) => {
+  if (collabError) {
+    collabError.textContent = msg;
+    collabError.classList.remove('hidden');
+    setTimeout(() => collabError.classList.add('hidden'), 4000);
+  }
+  if (btnCollabLaunch) {
+    btnCollabLaunch.disabled = state.collab.items.length < 8;
+    btnCollabLaunch.textContent = '🎮 Launch Game';
+  }
+});
+
+// --------------- Your Games (home screen) ---------------
+
+async function renderGames() {
+  if (!state.user) return;
+  const section = document.getElementById('games-section');
+  const list    = document.getElementById('games-list');
+  if (!section || !list) return;
+  try {
+    const data = await fetch('/api/history').then(r => r.json());
+    if (!Array.isArray(data) || data.length === 0) return;
+    section.classList.remove('hidden');
+    list.innerHTML = '';
+    data.slice(0, 10).forEach(g => {
+      const li = document.createElement('li');
+      li.className = 'history-item' + (g.got_bingo ? ' got-bingo' : '');
+      const date = new Date(g.played_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      li.innerHTML = `
+        <div class="history-title">${escHtml(g.title)}</div>
+        <div class="history-meta">
+          ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
+          · ${g.player_count} player${g.player_count != 1 ? 's' : ''} · ${date}
+        </div>
+      `;
+      list.appendChild(li);
+    });
+  } catch {}
+}
 
 // --------------- Join screen ---------------
 
@@ -668,13 +897,46 @@ async function init() {
     }
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const roomId = params.get('room');
+  const params   = new URLSearchParams(window.location.search);
+  const roomId   = params.get('room');
+  const collabId = params.get('collab');
+  const hostToken = params.get('host');
+
+  if (collabId) {
+    state.collab.id        = collabId.toUpperCase();
+    state.collab.hostToken = hostToken || null;
+
+    // Fetch session info for the title
+    try {
+      const res = await fetch(`/api/collab/${state.collab.id}`);
+      if (!res.ok) throw new Error();
+      const s = await res.json();
+      document.getElementById('collab-session-title').textContent =
+        s.title ? `"${s.title}"` : 'Join and help build the bingo card';
+    } catch {
+      document.getElementById('collab-join-error').textContent =
+        'This collaboration session has expired or was not found.';
+      document.getElementById('collab-join-error').classList.remove('hidden');
+      btnCollabJoin.disabled = true;
+    }
+
+    showScreen('screen-collab');
+    // Pre-fill name if logged in
+    const prefill = state.user ? state.user.name : loadSavedName();
+    if (prefill) {
+      collabNameInput.value = prefill;
+      btnCollabJoin.disabled = false;
+    } else {
+      collabNameInput.focus();
+    }
+    return;
+  }
 
   if (!roomId) {
     showScreen('screen-create');
     await renderTemplates();
     renderLeaderboard();
+    renderGames();
     itemsInput.focus();
     return;
   }
