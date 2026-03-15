@@ -247,9 +247,29 @@ app.get('/api/rooms/:id', (req, res) => {
   });
 });
 
+// Health check — lets you verify DB + OAuth config without signing in
+app.get('/api/health', async (req, res) => {
+  let dbConnected = false;
+  if (db.pool) {
+    try {
+      await db.pool.query('SELECT 1');
+      dbConnected = true;
+    } catch (e) {
+      console.error('DB health check failed:', e.message);
+    }
+  }
+  res.json({ ok: true, dbPool: !!db.pool, dbConnected, oauthEnabled });
+});
+
 // SPA fallback
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Global error handler — logs to Railway console so we can diagnose 500s
+app.use((err, req, res, next) => {
+  console.error('Unhandled error on', req.method, req.path, ':', err.stack || err.message || err);
+  res.status(500).json({ error: 'Internal server error', detail: err.message });
 });
 
 // --------------- Socket.io ---------------
