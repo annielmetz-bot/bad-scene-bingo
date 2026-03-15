@@ -51,6 +51,14 @@ const BASE_URL             = process.env.BASE_URL || 'http://localhost:3000';
 
 const oauthEnabled = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && db.pool);
 
+// Log OAuth config on startup so we can verify in Railway logs
+console.log('OAuth config check:', {
+  clientID:     GOOGLE_CLIENT_ID ? GOOGLE_CLIENT_ID.slice(0, 12) + '...' : 'MISSING',
+  clientSecret: GOOGLE_CLIENT_SECRET ? GOOGLE_CLIENT_SECRET.slice(0, 8) + '...' : 'MISSING',
+  callbackURL:  `${BASE_URL}/auth/google/callback`,
+  oauthEnabled,
+});
+
 if (oauthEnabled) {
   passport.use(new GoogleStrategy({
     clientID:     GOOGLE_CLIENT_ID,
