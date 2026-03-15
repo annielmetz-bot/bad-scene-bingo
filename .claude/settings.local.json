@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(curl -fsSL https://fnm.vercel.app/install)",
+      "Bash(bash)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(brew --version)",
+      "Bash(xcode-select -p)",
+      "Bash(sw_vers)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(find ~/Library/Containers/com.apple.Notes -name *.database)",
+      "Bash(find /Users/a.metz -type f \\\\\\(-name *toni* -o -name *Toni* \\\\\\))",
+      "Bash(find /Users/a.metz -type d -name Bad* -o -name *bingo* -o -name *Toni*)",
+      "Bash(find /Users/a.metz -type f -name *.json -o -name *.txt -o -name *.md)"
+    ]
+  }
+}

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bad Scene Bingo</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="BSBingo">
+  <link rel="apple-touch-icon" href="/icon-192.svg">
+</head>
+<body>
+
+  <!-- ===== CREATE SCREEN ===== -->
+  <div id="screen-create" class="screen active">
+    <div class="hero">
+      <div class="film-strip top"></div>
+      <h1 class="logo">😬 Bad Scene<br><span>BINGO</span></h1>
+      <p class="tagline">Find the humor. Survive together.</p>
+      <div class="film-strip bottom"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Create a Card</h2>
+
+      <div class="field">
+        <label for="card-title">Game Title <span class="optional">(optional)</span></label>
+        <input type="text" id="card-title" placeholder="e.g. Thanksgiving at Grandma's" maxlength="60">
+      </div>
+
+      <div class="field">
+        <label for="items-input">
+          Bingo Items
+          <span class="hint">One per line · 8 minimum · 24+ recommended</span>
+        </label>
+        <textarea id="items-input" rows="12" placeholder="Someone asks when you're getting married&#10;Politics comes up at dinner&#10;A passive-aggressive comment disguised as a compliment&#10;Someone retells a story everyone has heard 10 times&#10;Unsolicited parenting advice&#10;Comparison to a sibling&#10;Someone says &quot;I'm not racist, but...&quot;&#10;The host apologizes for the food 5+ times&#10;Someone's on their phone the whole time&#10;A decades-old family grievance is mentioned&#10;..."></textarea>
+        <div class="item-count"><span id="count-num">0</span> items entered</div>
+      </div>
+
+      <button id="btn-create" class="btn btn-primary" disabled>
+        Create &amp; Get Share Link
+      </button>
+
+      <p class="create-note">Each player gets their own shuffled card. Share the link before the event starts — and may the odds be ever in your favor.</p>
+    </div>
+  </div>
+
+  <!-- ===== JOIN SCREEN ===== -->
+  <div id="screen-join" class="screen">
+    <div class="hero small">
+      <h1 class="logo">😬 Bad Scene<br><span>BINGO</span></h1>
+    </div>
+
+    <div class="panel" id="join-panel">
+      <h2 id="join-room-title">Joining Game…</h2>
+      <p id="join-room-info" class="join-info"></p>
+
+      <div class="field">
+        <label for="player-name">Your Name</label>
+        <input type="text" id="player-name" placeholder="e.g. Surviving Sarah" maxlength="30" autocomplete="off">
+      </div>
+
+      <button id="btn-join" class="btn btn-primary" disabled>
+        Deal My Card!
+      </button>
+
+      <div id="join-error" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+  <!-- ===== PLAY SCREEN ===== -->
+  <div id="screen-play" class="screen">
+    <header class="play-header">
+      <div class="play-header-left">
+        <h1 class="play-logo">😬 BSB</h1>
+        <div class="play-info">
+          <span id="play-title" class="play-title"></span>
+          <span id="play-player" class="play-player-name"></span>
+        </div>
+      </div>
+      <div class="play-header-right">
+        <button id="btn-share" class="btn btn-sm" title="Copy share link">
+          📋 Share Link
+        </button>
+      </div>
+    </header>
+
+    <div id="bingo-banner" class="bingo-banner hidden">
+      🎉 BINGO! 🎉
+    </div>
+
+    <div id="bingo-alert" class="bingo-alert hidden"></div>
+
+    <div class="play-layout">
+      <!-- Bingo Card -->
+      <div class="card-area">
+        <div id="bingo-grid" class="bingo-grid"></div>
+
+        <button id="btn-bingo" class="btn btn-bingo hidden">
+          🎉 CALL BINGO!
+        </button>
+        <button id="btn-bingo-called" class="btn btn-bingo-called hidden" disabled>
+          ✅ BINGO CALLED!
+        </button>
+      </div>
+
+      <!-- Players Sidebar -->
+      <div class="sidebar">
+        <h3>Players</h3>
+        <ul id="players-list" class="players-list"></ul>
+
+        <div id="bingo-callers-section" class="bingo-callers hidden">
+          <h3>🏆 BINGO!</h3>
+          <ul id="bingo-callers-list" class="bingo-callers-list"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SHARE TOAST ===== -->
+  <div id="toast" class="toast hidden">Link copied to clipboard!</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+</body>
+</html>
