@@ -253,33 +253,59 @@ setInterval(() => {
 
 // --------------- Collab sessions ---------------
 
+// In-memory map holds live socket data; DB holds items/title so sessions survive restarts
 const collabSessions = new Map();
 
-// Clean up collab sessions older than 12 hours
+// Helper: get session from memory, falling back to DB (restores to memory)
+async function getCollabSession(collabId) {
+  const id = (collabId || '').toUpperCase();
+  if (collabSessions.has(id)) return collabSessions.get(id);
+  // Not in memory — try DB
+  if (!db.pool) return null;
+  const row = await db.getCollabSession(id).catch(() => null);
+  if (!row) return null;
+  // Restore into memory (sockets map starts empty — active sockets will rejoin)
+  const s = {
+    id:         row.id,
+    hostToken:  row.host_token,
+    title:      row.title || '',
+    items:      Array.isArray(row.items) ? row.items : [],
+    sockets:    new Map(),
+    createdAt:  new Date(row.created_at).getTime(),
+  };
+  collabSessions.set(id, s);
+  return s;
+}
+
+// Clean up stale collab sessions every hour (memory + DB)
 setInterval(() => {
   const cutoff = Date.now() - 12 * 60 * 60 * 1000;
   for (const [id, s] of collabSessions) {
     if (s.createdAt < cutoff) collabSessions.delete(id);
   }
+  db.cleanOldCollabSessions().catch(() => {});
 }, 60 * 60 * 1000);
 
-app.post('/api/collab', (req, res) => {
+app.post('/api/collab', async (req, res) => {
   const { title } = req.body;
   const collabId  = uuidv4().slice(0, 8).toUpperCase();
   const hostToken = uuidv4().slice(0, 12);
-  collabSessions.set(collabId, {
+  const s = {
     id: collabId,
     hostToken,
     title: title || '',
     items: [],
-    sockets: new Map(), // socketId -> { name }
+    sockets: new Map(),
     createdAt: Date.now(),
-  });
+  };
+  collabSessions.set(collabId, s);
+  // Persist so it survives a restart
+  db.saveCollabSession(collabId, hostToken, title).catch(() => {});
   res.json({ collabId, hostToken });
 });
 
-app.get('/api/collab/:id', (req, res) => {
-  const s = collabSessions.get(req.params.id.toUpperCase());
+app.get('/api/collab/:id', async (req, res) => {
+  const s = await getCollabSession(req.params.id);
   if (!s) return res.status(404).json({ error: 'Collab session not found or expired' });
   res.json({
     id:    s.id,
@@ -455,11 +481,11 @@ io.on('connection', (socket) => {
 
   // ----- Collab events -----
 
-  socket.on('join-collab', ({ collabId, name, hostToken }) => {
-    const s = collabSessions.get((collabId || '').toUpperCase());
+  socket.on('join-collab', async ({ collabId, name, hostToken }) => {
+    const s = await getCollabSession(collabId);
     if (!s) { socket.emit('collab-error', 'Collab session not found or expired.'); return; }
 
-    currentCollabId = collabId.toUpperCase();
+    currentCollabId = (collabId || '').toUpperCase();
     collabName = name;
     const isHost = s.hostToken === hostToken;
     s.sockets.set(socket.id, { name, isHost });
@@ -473,7 +499,6 @@ io.on('connection', (socket) => {
       })),
       participantCount: s.sockets.size,
     });
-    // Notify others of new participant count
     socket.to(`collab:${currentCollabId}`).emit('collab-participant-update', {
       participantCount: s.sockets.size,
     });
@@ -485,6 +510,7 @@ io.on('connection', (socket) => {
     const trimmed = (text || '').trim().slice(0, 120);
     if (!trimmed) return;
     s.items.push({ id: uuidv4().slice(0, 8), text: trimmed, contributor: collabName, socketId: socket.id });
+    db.updateCollabItems(s.id, s.items).catch(() => {});
     broadcastCollabItems(currentCollabId);
   });
 
@@ -496,6 +522,7 @@ io.on('connection', (socket) => {
     const trimmed = (text || '').trim().slice(0, 120);
     if (!trimmed) return;
     item.text = trimmed;
+    db.updateCollabItems(s.id, s.items).catch(() => {});
     broadcastCollabItems(currentCollabId);
   });
 
@@ -505,6 +532,7 @@ io.on('connection', (socket) => {
     const idx = s.items.findIndex(i => i.id === itemId && i.socketId === socket.id);
     if (idx === -1) return;
     s.items.splice(idx, 1);
+    db.updateCollabItems(s.id, s.items).catch(() => {});
     broadcastCollabItems(currentCollabId);
   });
 
@@ -516,18 +544,21 @@ io.on('connection', (socket) => {
       return;
     }
     const roomId = uuidv4().slice(0, 8).toUpperCase();
+    const roomItems = s.items.map(i => i.text);
     rooms.set(roomId, {
       id: roomId,
       title: s.title || 'Bad Scene Bingo',
-      items: s.items.map(i => i.text),
+      items: roomItems,
       players: new Map(),
       bingoCallers: [],
       createdAt: Date.now(),
       gameId: null,
       bingoOrder: 0,
     });
+    db.saveRoom(roomId, s.title || 'Bad Scene Bingo', roomItems).catch(() => {});
     io.to(`collab:${currentCollabId}`).emit('collab-launched', { roomId });
     collabSessions.delete(currentCollabId);
+    db.deleteCollabSession(currentCollabId).catch(() => {});
   });
 
   // ----- Room / disconnect -----
@@ -566,7 +597,22 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 
 (async () => {
-  if (db.pool) await db.initSchema();
+  if (db.pool) {
+    await db.initSchema();
+    // Restore active collab sessions from DB into memory
+    const saved = await db.getAllCollabSessions().catch(() => []);
+    for (const row of saved) {
+      collabSessions.set(row.id, {
+        id:        row.id,
+        hostToken: row.host_token,
+        title:     row.title || '',
+        items:     Array.isArray(row.items) ? row.items : [],
+        sockets:   new Map(),
+        createdAt: new Date(row.created_at).getTime(),
+      });
+    }
+    if (saved.length) console.log(`♻️  Restored ${saved.length} collab session(s) from DB`);
+  }
   httpServer.listen(PORT, () => {
     console.log(`\n😬 Bad Scene Bingo is running!`);
     console.log(`   Open: http://localhost:${PORT}`);

@@ -74,8 +74,10 @@ function renderAccountBar() {
 }
 
 async function signOut() {
-  await fetch('/auth/logout', { method: 'POST' });
-  window.location.reload();
+  try {
+    await fetch('/auth/logout', { method: 'POST' });
+  } catch {}
+  window.location.href = '/';
 }
 
 function escHtml(str) {
@@ -321,9 +323,15 @@ function buildHistoryItem(g, templates) {
     </div>
   `;
 
-  // Find items: from game record, or matching saved template, or open create screen
-  const items = (Array.isArray(g.items) && g.items.length >= 8) ? g.items
-    : (templates.find(t => t.title === g.title)?.items || null);
+  // Find items: from game record (with defensive parse), or matching saved template
+  let rawItems = g.items;
+  if (typeof rawItems === 'string') {
+    try { rawItems = JSON.parse(rawItems); } catch { rawItems = null; }
+  }
+  const gameItems = Array.isArray(rawItems) && rawItems.length >= 8 ? rawItems : null;
+  const titleLower = (g.title || '').toLowerCase().trim();
+  const tplMatch = templates.find(t => (t.title || '').toLowerCase().trim() === titleLower);
+  const items = gameItems || tplMatch?.items || null;
 
   const btn = document.createElement('button');
   btn.className = 'btn btn-sm btn-load';

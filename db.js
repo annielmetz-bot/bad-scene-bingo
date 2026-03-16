@@ -65,6 +65,14 @@ async function initSchema() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS collab_sessions (
+      id           VARCHAR(20) PRIMARY KEY,
+      host_token   TEXT NOT NULL,
+      title        TEXT DEFAULT '',
+      items        JSONB DEFAULT '[]'::jsonb,
+      created_at   TIMESTAMPTZ DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS user_sessions (
       sid    varchar NOT NULL,
       sess   json NOT NULL,
@@ -145,6 +153,50 @@ async function deleteTemplate(userId, templateId) {
   );
 }
 
+// --------------- Collab session helpers ---------------
+
+async function saveCollabSession(id, hostToken, title) {
+  if (!pool) return;
+  await query(
+    `INSERT INTO collab_sessions (id, host_token, title, items)
+     VALUES ($1,$2,$3,'[]'::jsonb)
+     ON CONFLICT (id) DO NOTHING`,
+    [id, hostToken, title || '']
+  );
+}
+
+async function getCollabSession(id) {
+  if (!pool) return null;
+  const result = await query('SELECT * FROM collab_sessions WHERE id=$1', [id]);
+  return result.rows[0] || null;
+}
+
+async function updateCollabItems(id, items) {
+  if (!pool) return;
+  await query(
+    'UPDATE collab_sessions SET items=$1 WHERE id=$2',
+    [JSON.stringify(items), id]
+  );
+}
+
+async function deleteCollabSession(id) {
+  if (!pool) return;
+  await query('DELETE FROM collab_sessions WHERE id=$1', [id]);
+}
+
+async function getAllCollabSessions() {
+  if (!pool) return [];
+  const result = await query(
+    "SELECT * FROM collab_sessions WHERE created_at > NOW() - INTERVAL '12 hours'"
+  );
+  return result.rows;
+}
+
+async function cleanOldCollabSessions() {
+  if (!pool) return;
+  await query("DELETE FROM collab_sessions WHERE created_at < NOW() - INTERVAL '12 hours'");
+}
+
 // --------------- Game history helpers ---------------
 
 async function recordGame(roomId, title, items) {
@@ -216,4 +268,10 @@ module.exports = {
   recordResult,
   getLeaderboard,
   getUserHistory,
+  saveCollabSession,
+  getCollabSession,
+  updateCollabItems,
+  deleteCollabSession,
+  getAllCollabSessions,
+  cleanOldCollabSessions,
 };
