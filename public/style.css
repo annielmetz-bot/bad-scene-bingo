@@ -903,8 +903,8 @@ textarea {
   .play-layout { flex-direction: column; padding: 0.75rem; }
   .play-header { padding: 0.6rem 0.85rem; }
   .play-header-right { gap: 0.25rem; }
-  /* Collapse Share Link and Print to icon-only on small screens */
-  #btn-share .btn-label, #btn-print .btn-label { display: none; }
+  /* Collapse Print to icon-only on small screens, keep Share visible */
+  #btn-print .btn-label { display: none; }
   /* Shrink logo so header doesn't overflow */
   .play-logo { font-size: 1.1rem; }
   .play-title { max-width: 160px; font-size: 0.88rem; }

@@ -1046,8 +1046,15 @@ document.getElementById('btn-play-home').addEventListener('click', () => {
   renderGames();
 });
 
-document.getElementById('btn-share').addEventListener('click', () => {
+document.getElementById('btn-share').addEventListener('click', async () => {
   const url = buildShareUrl();
+  const title = state.gameTitle || 'Bad Scene Bingo';
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text: `Join my Bad Scene Bingo card: ${title}`, url });
+      return;
+    } catch {}
+  }
   navigator.clipboard.writeText(url).then(() => showToast('Link copied!'));
 });
 
