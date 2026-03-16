@@ -77,7 +77,10 @@
 
     <!-- Recent games (logged in only) -->
     <div id="games-section" class="panel hidden">
-      <h2>🎮 Your Recent Games</h2>
+      <div class="section-header">
+        <h2>🎮 Your Recent Games</h2>
+        <button id="btn-view-history" class="btn btn-sm">View all →</button>
+      </div>
       <ul id="games-list" class="history-list"></ul>
     </div>
 
@@ -212,6 +215,7 @@
         </div>
       </div>
       <div class="play-header-right">
+        <button id="btn-play-home" class="btn btn-sm" title="Back to home">🏠 Home</button>
         <button id="btn-share" class="btn btn-sm" title="Copy share link">
           📋 Share Link
         </button>

@@ -676,12 +676,22 @@ async function renderGames() {
   const section = document.getElementById('games-section');
   const list    = document.getElementById('games-list');
   if (!section || !list) return;
+
+  section.classList.remove('hidden');
+  list.innerHTML = '<li class="history-loading">Loading…</li>';
+
+  // Wire "View all" button
+  const viewAllBtn = document.getElementById('btn-view-history');
+  if (viewAllBtn) viewAllBtn.onclick = showHistory;
+
   try {
     const data = await fetch('/api/history').then(r => r.json());
-    if (!Array.isArray(data) || data.length === 0) return;
-    section.classList.remove('hidden');
     list.innerHTML = '';
-    data.slice(0, 10).forEach(g => {
+    if (!Array.isArray(data) || data.length === 0) {
+      list.innerHTML = '<li class="history-empty">No games yet — go play! 😬</li>';
+      return;
+    }
+    data.slice(0, 5).forEach(g => {
       const li = document.createElement('li');
       li.className = 'history-item' + (g.got_bingo ? ' got-bingo' : '');
       const date = new Date(g.played_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
@@ -694,7 +704,9 @@ async function renderGames() {
       `;
       list.appendChild(li);
     });
-  } catch {}
+  } catch {
+    list.innerHTML = '<li class="history-empty">Could not load history.</li>';
+  }
 }
 
 // --------------- Join screen ---------------
@@ -738,6 +750,13 @@ btnJoin.addEventListener('click', () => {
 });
 
 // --------------- Share button ---------------
+
+document.getElementById('btn-play-home').addEventListener('click', () => {
+  showScreen('screen-home');
+  renderHomeSavedCards();
+  renderLeaderboard();
+  renderGames();
+});
 
 document.getElementById('btn-share').addEventListener('click', () => {
   const url = buildShareUrl();
