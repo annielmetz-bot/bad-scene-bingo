@@ -521,6 +521,17 @@ document.getElementById('btn-collab-start').addEventListener('click', async () =
   const items = parseItems(itemsInput.value);
   const title = cardTitleEl.value.trim();
 
+  if (!title) {
+    cardTitleEl.focus();
+    cardTitleEl.placeholder = 'Give your card a name first…';
+    cardTitleEl.classList.add('input-error');
+    setTimeout(() => {
+      cardTitleEl.classList.remove('input-error');
+      cardTitleEl.placeholder = '';
+    }, 2500);
+    return;
+  }
+
   try {
     const res = await fetch('/api/collab', {
       method: 'POST',

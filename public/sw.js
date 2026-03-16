@@ -1,4 +1,4 @@
-const CACHE = 'bsb-v15';
+const CACHE = 'bsb-v16';
 const SHELL = [
   '/',
   '/style.css',
