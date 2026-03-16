@@ -592,8 +592,17 @@ btnCollabAdd.addEventListener('click', () => {
   collabItemInput.focus();
 });
 
-document.getElementById('btn-collab-copy-link').addEventListener('click', () => {
+document.getElementById('btn-collab-copy-link').addEventListener('click', async () => {
   const url = `${window.location.origin}/?collab=${state.collab.id}`;
+  const title = document.getElementById('collab-workspace-title').textContent;
+  const shareData = {
+    title: `Build "${title}" together`,
+    text: `Help build the "${title}" Bad Scene Bingo card — add your items before we play!`,
+    url,
+  };
+  if (navigator.share) {
+    try { await navigator.share(shareData); return; } catch {}
+  }
   navigator.clipboard.writeText(url).catch(() => {});
   showToast('Invite link copied! 📋');
 });
