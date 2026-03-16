@@ -791,6 +791,59 @@ textarea {
   background: var(--surface2);
 }
 
+/* ---- Home screen: How it works ---- */
+.how-it-works {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.how-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 1rem 0.75rem;
+}
+
+.how-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.how-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.how-desc {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+.how-arrow {
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  padding-top: 1.6rem;
+  flex-shrink: 0;
+}
+
+.home-cta-panel {
+  padding-top: 0.5rem;
+}
+
+.create-back-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .logo { font-size: 2.4rem; }
@@ -803,6 +856,13 @@ textarea {
   .sidebar > * { flex: 1; min-width: 140px; }
   .bingo-grid { gap: 5px; }
   .play-title { max-width: 160px; }
+}
+
+@media (max-width: 480px) {
+  .how-it-works { flex-direction: column; }
+  .how-arrow { display: none; }
+  .how-step { flex-direction: row; text-align: left; align-items: flex-start; gap: 0.75rem; }
+  .how-icon { flex-shrink: 0; }
 }
 
 @media (max-width: 400px) {
@@ -1118,6 +1178,7 @@ textarea {
   body { background: #fff; }
 
   /* Hide everything except the play screen */
+  #screen-home,
   #screen-create,
   #screen-join,
   #screen-history,

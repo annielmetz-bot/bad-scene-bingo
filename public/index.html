@@ -25,8 +25,8 @@
 </head>
 <body>
 
-  <!-- ===== CREATE SCREEN ===== -->
-  <div id="screen-create" class="screen active">
+  <!-- ===== HOME SCREEN ===== -->
+  <div id="screen-home" class="screen active">
     <div class="hero">
       <div class="film-strip top"></div>
       <h1 class="logo">😬 Bad Scene<br><span>BINGO</span></h1>
@@ -40,17 +40,66 @@
       <div class="film-strip bottom"></div>
     </div>
 
-    <!-- Saved templates (local or cloud) -->
-    <div id="templates-section" class="panel templates-panel hidden">
-      <div class="templates-header">
-        <h2>Your Saved Cards</h2>
-        <span id="templates-sync-badge" class="sync-badge hidden">☁️ Synced</span>
+    <!-- How it works: 3 steps -->
+    <div class="panel">
+      <div class="how-it-works">
+        <div class="how-step">
+          <span class="how-icon">📝</span>
+          <strong class="how-title">Build a card</strong>
+          <p class="how-desc">Write out the inside jokes and cringe moments you expect to see</p>
+        </div>
+        <div class="how-arrow">→</div>
+        <div class="how-step">
+          <span class="how-icon">📲</span>
+          <strong class="how-title">Share the link</strong>
+          <p class="how-desc">Everyone joins and gets their own randomly shuffled card</p>
+        </div>
+        <div class="how-arrow">→</div>
+        <div class="how-step">
+          <span class="how-icon">✅</span>
+          <strong class="how-title">Mark &amp; survive</strong>
+          <p class="how-desc">Tap squares as the chaos unfolds. First to bingo wins.</p>
+        </div>
       </div>
-      <ul id="templates-list" class="templates-list"></ul>
+    </div>
+
+    <!-- Saved cards section (hidden until populated) -->
+    <div id="home-saved-section" class="panel hidden">
+      <h2>Your Saved Cards</h2>
+      <ul id="home-saved-list" class="templates-list"></ul>
+    </div>
+
+    <!-- Create CTA -->
+    <div class="panel home-cta-panel">
+      <button id="btn-go-create" class="btn btn-primary">＋ Create a New Card</button>
+      <p class="create-note">Each player gets their own shuffled card — share the link before the event starts.</p>
+    </div>
+
+    <!-- Recent games (logged in only) -->
+    <div id="games-section" class="panel hidden">
+      <h2>🎮 Your Recent Games</h2>
+      <ul id="games-list" class="history-list"></ul>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboard-section" class="panel hidden">
+      <h2>🏆 All-Time Leaderboard</h2>
+      <ul id="leaderboard-list" class="leaderboard-list"></ul>
+    </div>
+  </div>
+
+  <!-- ===== CREATE SCREEN ===== -->
+  <div id="screen-create" class="screen">
+    <div class="hero small">
+      <h1 class="logo">😬 Bad Scene<br><span>BINGO</span></h1>
+      <p class="tagline">Find the humor. Survive together.</p>
     </div>
 
     <div class="panel">
-      <h2>Create a Bingo Card</h2>
+      <div class="create-back-row">
+        <button id="btn-create-back" class="btn btn-sm">← Back</button>
+        <h2>Create a Bingo Card</h2>
+      </div>
 
       <div class="field">
         <label for="card-title">Game Title <span class="optional">(optional)</span></label>
@@ -79,18 +128,6 @@
       </div>
 
       <p class="create-note">Each player gets their own shuffled card. Share the link before the event starts — and may the odds be ever in your favor.</p>
-    </div>
-
-    <!-- Your Games -->
-    <div id="games-section" class="panel hidden">
-      <h2>🎮 Your Games</h2>
-      <ul id="games-list" class="history-list"></ul>
-    </div>
-
-    <!-- Leaderboard -->
-    <div id="leaderboard-section" class="panel hidden">
-      <h2>🏆 All-Time Leaderboard</h2>
-      <ul id="leaderboard-list" class="leaderboard-list"></ul>
     </div>
   </div>
 

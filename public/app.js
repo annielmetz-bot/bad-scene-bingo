@@ -77,7 +77,7 @@ async function signOut() {
   await fetch('/auth/logout', { method: 'POST' });
   state.user = null;
   renderAccountBar();
-  renderTemplates();
+  renderHomeSavedCards();
 }
 
 function escHtml(str) {
@@ -172,25 +172,21 @@ async function migrateLocalTemplatesToCloud() {
   } catch {}
 }
 
-// --------------- Render Templates ---------------
+// --------------- Render Home Saved Cards ---------------
 
-async function renderTemplates() {
-  const section = document.getElementById('templates-section');
-  const list    = document.getElementById('templates-list');
-  const badge   = document.getElementById('templates-sync-badge');
+async function renderHomeSavedCards() {
+  const section = document.getElementById('home-saved-section');
+  const list    = document.getElementById('home-saved-list');
+  if (!section || !list) return;
 
   let templates = [];
   let isCloud   = false;
 
   if (state.user) {
-    // Logged in — use cloud templates
     templates = await loadCloudTemplates();
     isCloud   = true;
-    if (badge) badge.classList.remove('hidden');
   } else {
-    // Not logged in — use localStorage
     templates = loadLocalTemplates();
-    if (badge) badge.classList.add('hidden');
   }
 
   if (templates.length === 0) {
@@ -214,7 +210,7 @@ async function renderTemplates() {
 
     const count = document.createElement('span');
     count.className = 'template-count';
-    const itemArr = isCloud ? t.items : t.items;
+    const itemArr = t.items;
     count.textContent = `${Array.isArray(itemArr) ? itemArr.length : '?'} items`;
 
     info.appendChild(name);
@@ -223,14 +219,21 @@ async function renderTemplates() {
     const actions = document.createElement('div');
     actions.className = 'template-actions';
 
-    const loadBtn = document.createElement('button');
-    loadBtn.className = 'btn btn-sm btn-load';
-    loadBtn.textContent = '▶ Play';
-    loadBtn.addEventListener('click', () => {
+    const playBtn = document.createElement('button');
+    playBtn.className = 'btn btn-sm btn-load';
+    playBtn.textContent = '▶ Play';
+    playBtn.addEventListener('click', () => {
+      launchCard(t.title, t.items);
+    });
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm';
+    editBtn.textContent = '✏️ Edit';
+    editBtn.addEventListener('click', () => {
       cardTitleEl.value = t.title;
-      itemsInput.value  = (isCloud ? t.items : t.items).join('\n');
+      itemsInput.value  = t.items.join('\n');
       itemsInput.dispatchEvent(new Event('input'));
-      document.querySelector('.panel h2').scrollIntoView({ behavior: 'smooth' });
+      showScreen('screen-create');
     });
 
     const delBtn = document.createElement('button');
@@ -243,15 +246,38 @@ async function renderTemplates() {
       } else {
         deleteLocalTemplate(t.id);
       }
-      renderTemplates();
+      renderHomeSavedCards();
     });
 
-    actions.appendChild(loadBtn);
+    actions.appendChild(playBtn);
+    actions.appendChild(editBtn);
     actions.appendChild(delBtn);
     li.appendChild(info);
     li.appendChild(actions);
     list.appendChild(li);
   });
+}
+
+// Keep renderTemplates as a no-op alias so any remaining internal calls are safe
+function renderTemplates() {
+  return renderHomeSavedCards();
+}
+
+// --------------- Launch Card ---------------
+
+async function launchCard(title, items) {
+  try {
+    const res = await fetch('/api/rooms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, title: title || 'Bad Scene Bingo' }),
+    });
+    if (!res.ok) throw new Error('Server error');
+    const { roomId } = await res.json();
+    window.location.href = `/?room=${roomId}`;
+  } catch {
+    showToast('Could not launch — please try again.');
+  }
 }
 
 // --------------- Leaderboard ---------------
@@ -313,7 +339,18 @@ async function showHistory() {
 }
 
 document.getElementById('btn-history-back').addEventListener('click', () => {
+  showScreen('screen-home');
+});
+
+// --------------- Home / Create navigation ---------------
+
+document.getElementById('btn-go-create').addEventListener('click', () => {
   showScreen('screen-create');
+});
+
+document.getElementById('btn-create-back').addEventListener('click', () => {
+  showScreen('screen-home');
+  renderHomeSavedCards();
 });
 
 // --------------- Utility helpers ---------------
@@ -432,7 +469,7 @@ document.getElementById('btn-save-template').addEventListener('click', async () 
     saveLocalTemplate(title, items);
     showToast(`"${title}" saved locally!`);
   }
-  renderTemplates();
+  renderHomeSavedCards();
 });
 
 document.getElementById('btn-collab-start').addEventListener('click', async () => {
@@ -933,11 +970,10 @@ async function init() {
   }
 
   if (!roomId) {
-    showScreen('screen-create');
-    await renderTemplates();
+    showScreen('screen-home');
+    await renderHomeSavedCards();
     renderLeaderboard();
     renderGames();
-    itemsInput.focus();
     return;
   }
 
