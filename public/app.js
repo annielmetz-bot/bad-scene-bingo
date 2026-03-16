@@ -458,7 +458,7 @@ itemsInput.addEventListener('input', () => {
   const enough = items.length >= 8;
   btnCreate.disabled = !enough;
   document.getElementById('btn-save-template').disabled = !enough;
-  document.getElementById('btn-collab-start').disabled = !enough;
+  // Collab can start with 0 items — collaborators add items together
 });
 
 function parseItems(text) {
@@ -519,7 +519,6 @@ document.getElementById('btn-save-template').addEventListener('click', async () 
 
 document.getElementById('btn-collab-start').addEventListener('click', async () => {
   const items = parseItems(itemsInput.value);
-  if (items.length < 8) return;
   const title = cardTitleEl.value.trim();
 
   try {
