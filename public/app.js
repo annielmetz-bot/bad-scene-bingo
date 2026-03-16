@@ -348,6 +348,21 @@ document.getElementById('btn-go-create').addEventListener('click', () => {
   showScreen('screen-create');
 });
 
+document.getElementById('btn-share-app').addEventListener('click', async () => {
+  const shareData = {
+    title: 'Bad Scene Bingo',
+    text: 'Find the humor. Survive together. Real-time multiplayer bingo for awkward social situations.',
+    url: window.location.origin,
+  };
+  if (navigator.share) {
+    try { await navigator.share(shareData); } catch {}
+  } else {
+    navigator.clipboard.writeText(window.location.origin)
+      .then(() => showToast('Link copied! 📋'))
+      .catch(() => showToast(window.location.origin));
+  }
+});
+
 document.getElementById('btn-create-back').addEventListener('click', () => {
   showScreen('screen-home');
   renderHomeSavedCards();
