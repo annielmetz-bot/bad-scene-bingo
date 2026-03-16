@@ -56,6 +56,13 @@ async function initSchema() {
       bingo_order INTEGER  -- 1 = first bingo, 2 = second, etc.
     );
 
+    CREATE TABLE IF NOT EXISTS rooms (
+      id         VARCHAR(20) PRIMARY KEY,
+      title      TEXT NOT NULL,
+      items      JSONB NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS user_sessions (
       sid    varchar NOT NULL,
       sess   json NOT NULL,
@@ -66,6 +73,27 @@ async function initSchema() {
   `);
 
   console.log('✅ Database schema ready');
+}
+
+// --------------- Room helpers ---------------
+
+async function saveRoom(roomId, title, items) {
+  if (!pool) return;
+  await query(
+    `INSERT INTO rooms (id, title, items) VALUES ($1,$2,$3) ON CONFLICT (id) DO NOTHING`,
+    [roomId, title, JSON.stringify(items)]
+  );
+}
+
+async function getRoom(roomId) {
+  if (!pool) return null;
+  const result = await query('SELECT * FROM rooms WHERE id=$1', [roomId]);
+  return result.rows[0] || null;
+}
+
+async function cleanOldRooms() {
+  if (!pool) return;
+  await query("DELETE FROM rooms WHERE created_at < NOW() - INTERVAL '48 hours'");
 }
 
 // --------------- User helpers ---------------
@@ -172,6 +200,9 @@ module.exports = {
   pool,
   query,
   initSchema,
+  saveRoom,
+  getRoom,
+  cleanOldRooms,
   findOrCreateUser,
   getTemplates,
   saveTemplate,

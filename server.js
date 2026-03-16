@@ -213,12 +213,37 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const rooms = new Map();
 
-// Clean up rooms older than 24 hours every hour
+// Load a room from memory, falling back to DB if not found
+async function getOrLoadRoom(roomId) {
+  let room = rooms.get(roomId);
+  if (!room && db.pool) {
+    try {
+      const dbRoom = await db.getRoom(roomId);
+      if (dbRoom) {
+        room = {
+          id:           dbRoom.id,
+          title:        dbRoom.title,
+          items:        dbRoom.items,
+          players:      new Map(),
+          bingoCallers: [],
+          createdAt:    new Date(dbRoom.created_at).getTime(),
+          gameId:       null,
+          bingoOrder:   0,
+        };
+        rooms.set(dbRoom.id, room);
+      }
+    } catch {}
+  }
+  return room || null;
+}
+
+// Clean up rooms older than 48 hours every hour (memory + DB)
 setInterval(() => {
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - 48 * 60 * 60 * 1000;
   for (const [id, room] of rooms) {
     if (room.createdAt < cutoff) rooms.delete(id);
   }
+  db.cleanOldRooms().catch(() => {});
 }, 60 * 60 * 1000);
 
 // --------------- Collab sessions ---------------
@@ -265,30 +290,36 @@ app.post('/api/rooms', (req, res) => {
     return res.status(400).json({ error: 'Need at least 8 items' });
   }
 
-  const roomId = uuidv4().slice(0, 8).toUpperCase();
+  const roomId    = uuidv4().slice(0, 8).toUpperCase();
+  const roomTitle = title || 'Bad Scene Bingo';
+  const roomItems = items.map(s => s.trim()).filter(Boolean);
+
   rooms.set(roomId, {
     id:           roomId,
-    title:        title || 'Bad Scene Bingo',
-    items:        items.map(s => s.trim()).filter(Boolean),
+    title:        roomTitle,
+    items:        roomItems,
     players:      new Map(),
     bingoCallers: [],
     createdAt:    Date.now(),
-    gameId:       null,   // set once first bingo is called (DB)
+    gameId:       null,
     bingoOrder:   0,
   });
+
+  // Persist to DB so the room survives server restarts
+  db.saveRoom(roomId, roomTitle, roomItems).catch(() => {});
 
   res.json({ roomId });
 });
 
 // Get room info (for joining)
-app.get('/api/rooms/:id', (req, res) => {
-  const room = rooms.get(req.params.id.toUpperCase());
+app.get('/api/rooms/:id', async (req, res) => {
+  const room = await getOrLoadRoom(req.params.id.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
   res.json({
-    id:          room.id,
-    title:       room.title,
-    items:       room.items,
-    playerCount: room.players.size,
+    id:           room.id,
+    title:        room.title,
+    items:        room.items,
+    playerCount:  room.players.size,
     bingoCallers: room.bingoCallers,
   });
 });
@@ -352,8 +383,8 @@ io.on('connection', (socket) => {
   let currentCollabId = null;
   let collabName      = null;
 
-  socket.on('join-room', ({ roomId, name, userId: uid }) => {
-    const room = rooms.get(roomId.toUpperCase());
+  socket.on('join-room', async ({ roomId, name, userId: uid }) => {
+    const room = await getOrLoadRoom(roomId.toUpperCase());
     if (!room) {
       socket.emit('room-error', 'Room not found. The link may have expired.');
       return;
