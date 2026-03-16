@@ -1046,11 +1046,12 @@ async function init() {
     }
 
     showScreen('screen-collab');
-    // Pre-fill name if logged in
+    // Pre-fill name and auto-join if we have one
     const prefill = state.user ? state.user.name : loadSavedName();
     if (prefill) {
       collabNameInput.value = prefill;
       btnCollabJoin.disabled = false;
+      setTimeout(() => btnCollabJoin.click(), 300);
     } else {
       collabNameInput.focus();
     }
