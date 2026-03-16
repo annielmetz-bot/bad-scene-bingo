@@ -185,13 +185,15 @@ async function getUserHistory(userId) {
   const result = await query(`
     SELECT
       g.title,
-      g.items,
+      COALESCE(g.items, r.items, t.items) AS items,
       g.played_at,
       gr.got_bingo,
       gr.bingo_order,
       (SELECT COUNT(*) FROM game_results gr2 WHERE gr2.game_id = g.id) AS player_count
     FROM games g
     JOIN game_results gr ON gr.game_id = g.id
+    LEFT JOIN rooms r ON r.id = g.room_id
+    LEFT JOIN templates t ON t.user_id = $1 AND t.title = g.title
     WHERE gr.user_id = $1
     ORDER BY g.played_at DESC
     LIMIT 50
