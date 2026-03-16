@@ -127,7 +127,12 @@ app.get('/auth/google/callback',
 );
 
 app.post('/auth/logout', (req, res) => {
-  req.logout(() => res.json({ ok: true }));
+  req.logout(() => {
+    req.session.destroy(() => {
+      res.clearCookie('connect.sid');
+      res.json({ ok: true });
+    });
+  });
 });
 
 // --------------- Template API (requires auth) ---------------

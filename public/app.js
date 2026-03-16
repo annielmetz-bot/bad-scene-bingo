@@ -441,6 +441,7 @@ function parseItems(text) {
 btnCreate.addEventListener('click', async () => {
   const items = parseItems(itemsInput.value);
   if (items.length < 8) return;
+  const title = cardTitleEl.value.trim() || 'Bad Scene Bingo';
 
   btnCreate.disabled = true;
   btnCreate.textContent = 'Creating…';
@@ -449,14 +450,18 @@ btnCreate.addEventListener('click', async () => {
     const res = await fetch('/api/rooms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items,
-        title: cardTitleEl.value.trim() || 'Bad Scene Bingo',
-      }),
+      body: JSON.stringify({ items, title }),
     });
 
     if (!res.ok) throw new Error('Server error');
     const { roomId } = await res.json();
+
+    // Auto-save so the card appears in "Your Saved Cards" on the home screen
+    if (state.user) {
+      saveCloudTemplate(title, items).catch(() => {});
+    } else {
+      saveLocalTemplate(title, items);
+    }
 
     window.location.href = `/?room=${roomId}`;
   } catch (err) {
