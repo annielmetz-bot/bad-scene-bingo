@@ -306,40 +306,58 @@ async function renderLeaderboard() {
 
 // --------------- History screen ---------------
 
+function buildHistoryItem(g, templates) {
+  const li = document.createElement('li');
+  li.className = 'history-item' + (g.got_bingo ? ' got-bingo' : '');
+  const date = new Date(g.played_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  li.innerHTML = `
+    <div class="history-info">
+      <div class="history-title">${escHtml(g.title)}</div>
+      <div class="history-meta">
+        ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
+        · ${g.player_count} player${g.player_count != 1 ? 's' : ''}
+        · ${date}
+      </div>
+    </div>
+  `;
+
+  // Find items: from game record, or matching saved template, or open create screen
+  const items = (Array.isArray(g.items) && g.items.length >= 8) ? g.items
+    : (templates.find(t => t.title === g.title)?.items || null);
+
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-sm btn-load';
+  if (items) {
+    btn.textContent = '▶ Play Again';
+    btn.addEventListener('click', () => launchCard(g.title, items));
+  } else {
+    btn.textContent = '✏️ Recreate';
+    btn.addEventListener('click', () => {
+      cardTitleEl.value = g.title;
+      itemsInput.value = '';
+      itemsInput.dispatchEvent(new Event('input'));
+      showScreen('screen-create');
+    });
+  }
+  li.appendChild(btn);
+  return li;
+}
+
 async function showHistory() {
   showScreen('screen-history');
   const list = document.getElementById('history-list');
   list.innerHTML = '<li class="history-loading">Loading…</li>';
   try {
-    const data = await fetch('/api/history').then(r => r.json());
+    const [data, templates] = await Promise.all([
+      fetch('/api/history').then(r => r.json()),
+      state.user ? loadCloudTemplates() : Promise.resolve(loadLocalTemplates()),
+    ]);
     list.innerHTML = '';
     if (!data.length) {
       list.innerHTML = '<li class="history-empty">No games yet — go play!</li>';
       return;
     }
-    data.forEach(g => {
-      const li = document.createElement('li');
-      li.className = 'history-item' + (g.got_bingo ? ' got-bingo' : '');
-      const date = new Date(g.played_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-      li.innerHTML = `
-        <div class="history-info">
-          <div class="history-title">${escHtml(g.title)}</div>
-          <div class="history-meta">
-            ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
-            · ${g.player_count} player${g.player_count != 1 ? 's' : ''}
-            · ${date}
-          </div>
-        </div>
-      `;
-      if (Array.isArray(g.items) && g.items.length >= 8) {
-        const playBtn = document.createElement('button');
-        playBtn.className = 'btn btn-sm btn-load';
-        playBtn.textContent = '▶ Play Again';
-        playBtn.addEventListener('click', () => launchCard(g.title, g.items));
-        li.appendChild(playBtn);
-      }
-      list.appendChild(li);
-    });
+    data.forEach(g => list.appendChild(buildHistoryItem(g, templates)));
   } catch {
     list.innerHTML = '<li class="history-empty">Could not load history.</li>';
   }
@@ -712,34 +730,16 @@ async function renderGames() {
   if (viewAllBtn) viewAllBtn.onclick = showHistory;
 
   try {
-    const data = await fetch('/api/history').then(r => r.json());
+    const [data, templates] = await Promise.all([
+      fetch('/api/history').then(r => r.json()),
+      loadCloudTemplates(),
+    ]);
     list.innerHTML = '';
     if (!Array.isArray(data) || data.length === 0) {
       list.innerHTML = '<li class="history-empty">No games yet — go play! 😬</li>';
       return;
     }
-    data.slice(0, 5).forEach(g => {
-      const li = document.createElement('li');
-      li.className = 'history-item' + (g.got_bingo ? ' got-bingo' : '');
-      const date = new Date(g.played_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-      li.innerHTML = `
-        <div class="history-info">
-          <div class="history-title">${escHtml(g.title)}</div>
-          <div class="history-meta">
-            ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
-            · ${g.player_count} player${g.player_count != 1 ? 's' : ''} · ${date}
-          </div>
-        </div>
-      `;
-      if (Array.isArray(g.items) && g.items.length >= 8) {
-        const playBtn = document.createElement('button');
-        playBtn.className = 'btn btn-sm btn-load';
-        playBtn.textContent = '▶ Play Again';
-        playBtn.addEventListener('click', () => launchCard(g.title, g.items));
-        li.appendChild(playBtn);
-      }
-      list.appendChild(li);
-    });
+    data.slice(0, 5).forEach(g => list.appendChild(buildHistoryItem(g, templates)));
   } catch {
     list.innerHTML = '<li class="history-empty">Could not load history.</li>';
   }
