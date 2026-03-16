@@ -1049,6 +1049,14 @@ textarea {
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
   box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.history-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .history-item.got-bingo {

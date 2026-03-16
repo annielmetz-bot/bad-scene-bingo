@@ -437,7 +437,7 @@ io.on('connection', (socket) => {
       try {
         // Create game record on first bingo
         if (!room.gameId) {
-          const game = await db.recordGame(room.id, room.title);
+          const game = await db.recordGame(room.id, room.title, room.items);
           room.gameId = game.id;
 
           // Record all current players as participants (non-bingo)

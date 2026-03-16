@@ -44,8 +44,10 @@ async function initSchema() {
       id         SERIAL PRIMARY KEY,
       room_id    TEXT NOT NULL,
       title      TEXT NOT NULL,
+      items      JSONB,
       played_at  TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS items JSONB;
 
     CREATE TABLE IF NOT EXISTS game_results (
       id         SERIAL PRIMARY KEY,
@@ -145,10 +147,10 @@ async function deleteTemplate(userId, templateId) {
 
 // --------------- Game history helpers ---------------
 
-async function recordGame(roomId, title) {
+async function recordGame(roomId, title, items) {
   const result = await query(
-    'INSERT INTO games (room_id, title) VALUES ($1,$2) RETURNING *',
-    [roomId, title]
+    'INSERT INTO games (room_id, title, items) VALUES ($1,$2,$3) RETURNING *',
+    [roomId, title, JSON.stringify(items || [])]
   );
   return result.rows[0];
 }
@@ -183,6 +185,7 @@ async function getUserHistory(userId) {
   const result = await query(`
     SELECT
       g.title,
+      g.items,
       g.played_at,
       gr.got_bingo,
       gr.bingo_order,

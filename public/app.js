@@ -322,13 +322,22 @@ async function showHistory() {
       li.className = 'history-item' + (g.got_bingo ? ' got-bingo' : '');
       const date = new Date(g.played_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
       li.innerHTML = `
-        <div class="history-title">${escHtml(g.title)}</div>
-        <div class="history-meta">
-          ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
-          · ${g.player_count} player${g.player_count != 1 ? 's' : ''}
-          · ${date}
+        <div class="history-info">
+          <div class="history-title">${escHtml(g.title)}</div>
+          <div class="history-meta">
+            ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
+            · ${g.player_count} player${g.player_count != 1 ? 's' : ''}
+            · ${date}
+          </div>
         </div>
       `;
+      if (Array.isArray(g.items) && g.items.length >= 8) {
+        const playBtn = document.createElement('button');
+        playBtn.className = 'btn btn-sm btn-load';
+        playBtn.textContent = '▶ Play Again';
+        playBtn.addEventListener('click', () => launchCard(g.title, g.items));
+        li.appendChild(playBtn);
+      }
       list.appendChild(li);
     });
   } catch {
@@ -714,12 +723,21 @@ async function renderGames() {
       li.className = 'history-item' + (g.got_bingo ? ' got-bingo' : '');
       const date = new Date(g.played_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
       li.innerHTML = `
-        <div class="history-title">${escHtml(g.title)}</div>
-        <div class="history-meta">
-          ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
-          · ${g.player_count} player${g.player_count != 1 ? 's' : ''} · ${date}
+        <div class="history-info">
+          <div class="history-title">${escHtml(g.title)}</div>
+          <div class="history-meta">
+            ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
+            · ${g.player_count} player${g.player_count != 1 ? 's' : ''} · ${date}
+          </div>
         </div>
       `;
+      if (Array.isArray(g.items) && g.items.length >= 8) {
+        const playBtn = document.createElement('button');
+        playBtn.className = 'btn btn-sm btn-load';
+        playBtn.textContent = '▶ Play Again';
+        playBtn.addEventListener('click', () => launchCard(g.title, g.items));
+        li.appendChild(playBtn);
+      }
       list.appendChild(li);
     });
   } catch {
