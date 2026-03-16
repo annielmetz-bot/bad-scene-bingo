@@ -441,6 +441,9 @@ textarea {
   display: flex;
   align-items: center;
   gap: 0.85rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .play-logo {
@@ -477,6 +480,9 @@ textarea {
 .play-player-name {
   font-size: 0.75rem;
   color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ---- Bingo Banner / Alert ---- */
@@ -869,15 +875,24 @@ textarea {
   .logo span { font-size: 2.1rem; }
   .panel { padding: 2rem 1.5rem 2.5rem; }
   .hero { padding: 3rem 1.75rem 2.5rem; }
-  .play-layout { flex-direction: column; padding: 1rem 1.25rem; }
-  .play-header { padding: 0.7rem 1rem; }
-  .play-header-right { gap: 0.3rem; }
+
+  /* Play layout: stack card above sidebar, tighter padding */
+  .play-layout { flex-direction: column; padding: 0.75rem; }
+  .play-header { padding: 0.6rem 0.85rem; }
+  .play-header-right { gap: 0.25rem; }
   /* Collapse Share Link and Print to icon-only on small screens */
   #btn-share .btn-label, #btn-print .btn-label { display: none; }
+  /* Shrink logo so header doesn't overflow */
+  .play-logo { font-size: 1.1rem; }
+  .play-title { max-width: 160px; font-size: 0.88rem; }
+  .play-player-name { font-size: 0.7rem; }
+
   .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; gap: 0.75rem; }
   .sidebar > * { flex: 1; min-width: 140px; }
-  .bingo-grid { gap: 5px; }
-  .play-title { max-width: 120px; }
+
+  /* Larger gap handled below; cells get a readable font size */
+  .bingo-grid { gap: 4px; }
+  .bingo-cell { font-size: 0.65rem; padding: 3px; }
 }
 
 @media (max-width: 480px) {
@@ -885,10 +900,11 @@ textarea {
   .how-arrow { display: none; }
   .how-step { flex-direction: row; text-align: left; align-items: flex-start; gap: 0.75rem; }
   .how-icon { flex-shrink: 0; }
-}
 
-@media (max-width: 400px) {
-  .bingo-cell { font-size: 0.48rem; }
+  /* On very small phones maximise the card */
+  .play-layout { padding: 0.5rem; }
+  .bingo-grid { gap: 3px; }
+  .bingo-cell { font-size: 0.62rem; }
 }
 
 /* ---- Account bar (hero) ---- */
