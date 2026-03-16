@@ -2,6 +2,19 @@
    BAD SCENE BINGO – Frontend App
    ========================================================= */
 
+// Global error recovery — if a JS crash happens, show a reload button
+window.addEventListener('error', () => showRecovery());
+window.addEventListener('unhandledrejection', () => showRecovery());
+function showRecovery() {
+  const existing = document.getElementById('recovery-banner');
+  if (existing) return;
+  const el = document.createElement('div');
+  el.id = 'recovery-banner';
+  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#e63950;color:#fff;text-align:center;padding:1rem;font-family:sans-serif;';
+  el.innerHTML = 'Something went wrong. <button onclick="caches.keys().then(k=>Promise.all(k.map(c=>caches.delete(c)))).then(()=>location.reload(true))" style="margin-left:1rem;padding:0.4rem 1rem;background:#fff;color:#e63950;border:none;border-radius:4px;font-weight:bold;cursor:pointer;">Reload &amp; Fix</button>';
+  document.body.prepend(el);
+}
+
 // --------------- State ---------------
 const state = {
   roomId: null,
