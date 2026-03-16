@@ -310,10 +310,10 @@ async function renderLeaderboard() {
       const li = document.createElement('li');
       li.className = 'leaderboard-item';
       li.innerHTML = `
-        <span class="lb-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}</span>
+        <span class="lb-rank">#${i+1}</span>
         ${p.avatar ? `<img class="lb-avatar" src="${escHtml(p.avatar)}" alt="">` : '<span class="lb-avatar-placeholder"></span>'}
         <span class="lb-name">${escHtml(p.name)}</span>
-        <span class="lb-stats">${p.first_bingo_count} 🎉 · ${p.bingo_count} bingo · ${p.games_played} games</span>
+        <span class="lb-stats">${p.first_bingo_count} first · ${p.bingo_count} bingo · ${p.games_played} games</span>
       `;
       list.appendChild(li);
     });
@@ -330,7 +330,7 @@ function buildHistoryItem(g, templates) {
     <div class="history-info">
       <div class="history-title">${escHtml(g.title)}</div>
       <div class="history-meta">
-        ${g.got_bingo ? (g.bingo_order === 1 ? '🥇 First Bingo' : '🎉 Bingo') : '😬 No bingo'}
+        ${g.got_bingo ? (g.bingo_order === 1 ? 'First Bingo' : 'Bingo') : 'No bingo'}
         · ${g.player_count} player${g.player_count != 1 ? 's' : ''}
         · ${date}
       </div>
@@ -583,7 +583,7 @@ document.getElementById('btn-share-app').addEventListener('click', async () => {
     try { await navigator.share(shareData); } catch {}
   } else {
     navigator.clipboard.writeText(window.location.origin)
-      .then(() => showToast('Link copied! 📋'))
+      .then(() => showToast('Link copied!'))
       .catch(() => showToast(window.location.origin));
   }
 });
@@ -804,7 +804,7 @@ document.getElementById('btn-collab-copy-link').addEventListener('click', async 
     try { await navigator.share(shareData); return; } catch {}
   }
   navigator.clipboard.writeText(url).catch(() => {});
-  showToast('Invite link copied! 📋');
+  showToast('Invite link copied!');
 });
 
 btnCollabLaunch.addEventListener('click', () => {
@@ -962,7 +962,7 @@ socket.on('collab-error', (msg) => {
   }
   if (btnCollabLaunch) {
     btnCollabLaunch.disabled = state.collab.items.length < 8;
-    btnCollabLaunch.textContent = '🎮 Launch Game';
+    btnCollabLaunch.textContent = 'Launch Game';
   }
 });
 
@@ -988,7 +988,7 @@ async function renderGames() {
     ]);
     list.innerHTML = '';
     if (!Array.isArray(data) || data.length === 0) {
-      list.innerHTML = '<li class="history-empty">No games yet — go play! 😬</li>';
+      list.innerHTML = '<li class="history-empty">No games yet — go play!</li>';
       return;
     }
     data.slice(0, 5).forEach(g => list.appendChild(buildHistoryItem(g, templates)));
@@ -1168,7 +1168,7 @@ function renderBingoCallers() {
   list.innerHTML = '';
   state.bingoCallers.forEach(name => {
     const li = document.createElement('li');
-    li.textContent = `🎉 ${name}`;
+    li.textContent = name;
     list.appendChild(li);
   });
 }
@@ -1223,7 +1223,7 @@ socket.on('bingo-called', ({ id, name, bingoCallers }) => {
   renderBingoCallers();
 
   if (id !== socket.id) {
-    showAlert(`🎉 ${name} called BINGO!`);
+    showAlert(`${name} called BINGO!`);
   }
 });
 
