@@ -1308,3 +1308,73 @@ textarea {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px rgba(230,57,80,0.2) !important;
 }
+
+/* ---- Built-in Templates ---- */
+.builtin-templates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.builtin-templates h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem;
+  color: #222;
+}
+
+.template-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.template-card {
+  background: #fff7ed;
+  border: 1.5px solid #fde8c8;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.template-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.template-card-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.template-card-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #222;
+  line-height: 1.3;
+}
+
+.template-card-count {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.template-card-btn {
+  margin-top: auto;
+  background: #e63950;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.template-card-btn:hover {
+  background: #c72d41;
+}

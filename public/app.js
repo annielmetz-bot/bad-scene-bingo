@@ -389,6 +389,184 @@ document.getElementById('btn-history-back').addEventListener('click', () => {
   showScreen('screen-home');
 });
 
+// --------------- Built-in Templates ---------------
+
+const BUILTIN_TEMPLATES = [
+  {
+    emoji: '🇺🇸',
+    title: 'Trump Speech Bingo',
+    items: [
+      'Fake news',
+      'Nobody knows more about this than me',
+      'Many people are saying',
+      'Tremendous',
+      'Disaster',
+      'The radical left',
+      'Witch hunt',
+      'The deep state',
+      'Believe me',
+      'Like you\'ve never seen before',
+      'Very unfair',
+      'Millions and millions',
+      'Our great military',
+      'They want to destroy our country',
+      'Nickname for an opponent',
+      'Perfect',
+      'Frankly',
+      'China (said with emphasis)',
+      'The failing New York Times',
+      'Hand gesture',
+      '"Beautiful" (used for something weird)',
+      'We\'re going to win so much',
+      'Nasty',
+      'No collusion',
+    ],
+  },
+  {
+    emoji: '💼',
+    title: 'Corporate Meeting Bingo',
+    items: [
+      'Let\'s take this offline',
+      'Circle back',
+      'Move the needle',
+      'Low-hanging fruit',
+      'Synergy',
+      'Bandwidth',
+      'Deep dive',
+      'Leverage',
+      'Touch base',
+      'Going forward',
+      'Action items',
+      'Best practices',
+      'Scalable',
+      'Thought leader',
+      'Disruptive',
+      'Pivot',
+      'Ping me',
+      'Value-add',
+      'Someone joins late',
+      'Someone\'s mic is muted when they talk',
+      'Can everyone see my screen?',
+      'Meeting runs over time',
+      'At the end of the day',
+      'This could have been an email',
+    ],
+  },
+  {
+    emoji: '🍽️',
+    title: 'Awkward Family Dinner Bingo',
+    items: [
+      'Someone asks when you\'re getting married',
+      'Politics comes up',
+      'A passive-aggressive compliment',
+      'Someone retells a story everyone\'s heard',
+      'Unsolicited parenting advice',
+      'Comparison to a sibling',
+      'The host apologizes for the food',
+      'Someone\'s on their phone the whole time',
+      'A decades-old grievance is mentioned',
+      '"You look tired"',
+      '"When are you having kids?"',
+      'Someone brings up an ex',
+      'Dietary restriction is ignored',
+      '"Back in my day..."',
+      'An old photo is brought out to embarrass someone',
+      'Someone leaves early',
+      '"I\'m not trying to start anything, but..."',
+      'The same argument from last year',
+      'Someone overshares about their health',
+      'Someone falls asleep',
+      'The TV stays on during dinner',
+      'Someone cries',
+      'A gift goes unappreciated',
+      'Someone gives feedback that wasn\'t asked for',
+    ],
+  },
+  {
+    emoji: '💔',
+    title: 'Bad First Date Bingo',
+    items: [
+      'They talk about their ex',
+      'They\'re on their phone',
+      'They\'re late',
+      '"I\'m not like other guys/girls"',
+      'They talk only about themselves',
+      'Awkward silence lasting 30+ seconds',
+      'They order for you without asking',
+      'They mention how much money they make',
+      'They\'re rude to the server',
+      'They bring up their trauma in the first 10 minutes',
+      '"My therapist says..."',
+      'They look nothing like their photos',
+      'They ask how many people you\'ve dated',
+      'They already have a nickname for you',
+      'They suggest splitting the check then order the most expensive thing',
+      'They\'re very into astrology',
+      '"I\'m basically an empath"',
+      'They talk about their diet for 10 minutes',
+      'They have opinions about your order',
+      '"I\'m between jobs"',
+      'They ask about your five-year plan',
+      'They suggest a second location within the first hour',
+      '"I\'m very authentic"',
+      'They mention their podcast',
+    ],
+  },
+  {
+    emoji: '🎄',
+    title: 'Office Holiday Party Bingo',
+    items: [
+      'Someone drinks too much',
+      'Awkward Secret Santa gift',
+      'The boss makes a speech',
+      'Someone brings up work gossip',
+      'Someone you don\'t recognize acts like they know you',
+      'Someone asks about your salary',
+      'The vegetarian option is just salad',
+      'Someone corners you and won\'t stop talking',
+      'A couple has a visible argument',
+      'Someone cries in the bathroom',
+      'Mandatory "fun" activity',
+      'Someone\'s plus-one wasn\'t invited',
+      'The venue is too hot or too cold',
+      'A speech goes on way too long',
+      'Someone hooks up with a coworker',
+      'Someone falls',
+      'Someone wears something inappropriate',
+      'HR gets involved in something',
+      'Someone proposes a toast that goes sideways',
+      'A slideshow no one asked for',
+      'Karaoke that gets out of hand',
+      'The food runs out before you get there',
+      'You get trapped talking about someone\'s renovation',
+      'The CEO pretends to be relatable',
+    ],
+  },
+];
+
+function renderBuiltinTemplates() {
+  const container = document.getElementById('builtin-template-cards');
+  if (!container) return;
+  container.innerHTML = '';
+  BUILTIN_TEMPLATES.forEach(tpl => {
+    const card = document.createElement('div');
+    card.className = 'template-card';
+    card.innerHTML = `
+      <div class="template-card-emoji">${tpl.emoji}</div>
+      <div class="template-card-title">${escHtml(tpl.title)}</div>
+      <div class="template-card-count">${tpl.items.length} items</div>
+      <button class="template-card-btn">Play this →</button>
+    `;
+    card.querySelector('.template-card-btn').addEventListener('click', () => {
+      document.getElementById('card-title').value = tpl.title;
+      document.getElementById('items-input').value = tpl.items.join('\n');
+      document.getElementById('items-input').dispatchEvent(new Event('input'));
+      showScreen('screen-create');
+    });
+    container.appendChild(card);
+  });
+}
+
 // --------------- Home / Create navigation ---------------
 
 document.getElementById('btn-go-create').addEventListener('click', () => {
@@ -1102,6 +1280,7 @@ async function init() {
 
   if (!roomId) {
     showScreen('screen-home');
+    renderBuiltinTemplates();
     await renderHomeSavedCards();
     renderLeaderboard();
     renderGames();
