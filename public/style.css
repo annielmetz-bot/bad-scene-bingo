@@ -128,10 +128,11 @@ html, body {
 
 .concept-desc {
   text-align: center;
-  color: rgba(255,255,255,0.75);
+  color: #555;
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
+  font-style: italic;
 }
 
 /* ---- Panel ---- */
