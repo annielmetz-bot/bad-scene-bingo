@@ -1,4 +1,4 @@
-const CACHE = 'bsb-v19';
+const CACHE = 'bsb-v20';
 const SHELL = [
   '/',
   '/style.css',

@@ -451,6 +451,13 @@ textarea {
   color: var(--text);
 }
 
+.play-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
 .play-info {
   display: flex;
   flex-direction: column;
@@ -863,11 +870,14 @@ textarea {
   .panel { padding: 2rem 1.5rem 2.5rem; }
   .hero { padding: 3rem 1.75rem 2.5rem; }
   .play-layout { flex-direction: column; padding: 1rem 1.25rem; }
-  .play-header { padding: 0.7rem 1.25rem; }
+  .play-header { padding: 0.7rem 1rem; }
+  .play-header-right { gap: 0.3rem; }
+  /* Collapse Share Link and Print to icon-only on small screens */
+  #btn-share .btn-label, #btn-print .btn-label { display: none; }
   .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; gap: 0.75rem; }
   .sidebar > * { flex: 1; min-width: 140px; }
   .bingo-grid { gap: 5px; }
-  .play-title { max-width: 160px; }
+  .play-title { max-width: 120px; }
 }
 
 @media (max-width: 480px) {
