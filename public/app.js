@@ -302,6 +302,7 @@ async function renderLeaderboard() {
     const list    = document.getElementById('leaderboard-list');
 
     if (!Array.isArray(data) || data.length === 0) return;
+    if (data.error) return;
 
     section.classList.remove('hidden');
     list.innerHTML = '';

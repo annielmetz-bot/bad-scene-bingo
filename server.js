@@ -186,10 +186,10 @@ app.delete('/api/templates/:id', requireAuth, async (req, res) => {
 
 // --------------- Leaderboard / history API ---------------
 
-app.get('/api/leaderboard', async (req, res) => {
+app.get('/api/leaderboard', requireAuth, async (req, res) => {
   if (!db.pool) return res.json([]);
   try {
-    res.json(await db.getLeaderboard());
+    res.json(await db.getLeaderboard(req.user.id));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

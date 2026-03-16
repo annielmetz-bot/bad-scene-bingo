@@ -215,7 +215,7 @@ async function recordResult(gameId, userId, playerName, gotBingo, bingoOrder) {
   );
 }
 
-async function getLeaderboard() {
+async function getLeaderboard(userId) {
   const result = await query(`
     SELECT
       u.id,
@@ -226,10 +226,13 @@ async function getLeaderboard() {
       SUM(CASE WHEN gr.bingo_order = 1 THEN 1 ELSE 0 END)              AS first_bingo_count
     FROM users u
     JOIN game_results gr ON gr.user_id = u.id
+    WHERE gr.game_id IN (
+      SELECT game_id FROM game_results WHERE user_id = $1
+    )
     GROUP BY u.id, u.name, u.avatar
     ORDER BY first_bingo_count DESC, bingo_count DESC, games_played DESC
     LIMIT 20
-  `);
+  `, [userId]);
   return result.rows;
 }
 

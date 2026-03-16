@@ -126,6 +126,14 @@ html, body {
   position: relative;
 }
 
+.concept-desc {
+  text-align: center;
+  color: rgba(255,255,255,0.75);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
 /* ---- Panel ---- */
 .panel {
   max-width: 540px;
