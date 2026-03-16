@@ -3,7 +3,7 @@
    Editorial theme: warm neutrals, charcoal, amber
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Abril+Fatface&family=IM+Fell+English:ital@1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,400;1,700&display=swap');
 
 :root {
   --bg:         #F8F7F4;
@@ -40,7 +40,7 @@ html, body {
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -97,10 +97,10 @@ html, body {
 .film-strip { display: none; }
 
 .logo {
-  font-family: 'Abril Fatface', Georgia, serif;
-  font-size: 3.6rem;
-  font-weight: 400; /* Abril Fatface only has one weight */
-  letter-spacing: -0.5px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 3.4rem;
+  font-weight: 800;
+  letter-spacing: -1px;
   line-height: 1.05;
   color: #fff;
   text-shadow: 0 2px 24px rgba(0,0,0,0.5);
@@ -110,26 +110,28 @@ html, body {
 .logo::after {
   content: '';
   display: block;
-  width: 48px;
-  height: 1px;
-  background: rgba(255,255,255,0.35);
+  width: 40px;
+  height: 1.5px;
+  background: rgba(255,255,255,0.3);
   margin: 0.55rem auto 0.5rem;
 }
 .logo span {
   display: block;
-  font-family: 'IM Fell English', Georgia, serif;
+  font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
   font-weight: 400;
-  letter-spacing: 10px;
-  font-size: 2.6rem;
-  color: rgba(255,255,255,0.82);
-  text-indent: 10px; /* compensate for letter-spacing on last char */
+  letter-spacing: 8px;
+  font-size: 2.2rem;
+  color: rgba(255,255,255,0.75);
+  text-indent: 8px;
 }
 .tagline {
-  color: rgba(255,255,255,0.82);
-  font-size: 1rem;
+  color: rgba(255,255,255,0.65);
+  font-size: 0.9rem;
   font-style: italic;
+  font-family: 'Playfair Display', Georgia, serif;
   position: relative;
+  letter-spacing: 0.5px;
 }
 
 .concept-desc {
@@ -153,8 +155,9 @@ html, body {
 }
 
 .panel h2 {
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.35rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text);
 }
 
@@ -839,14 +842,19 @@ textarea {
 }
 
 .how-icon {
-  font-size: 1.6rem;
-  line-height: 1;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif;
+  text-transform: uppercase;
 }
 
 .how-title {
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--text);
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 .how-desc {
@@ -856,9 +864,9 @@ textarea {
 }
 
 .how-arrow {
-  color: var(--text-dim);
-  font-size: 1.1rem;
-  padding-top: 1.6rem;
+  color: var(--border);
+  font-size: 1rem;
+  padding-top: 1.4rem;
   flex-shrink: 0;
 }
 
@@ -1335,9 +1343,10 @@ textarea {
 }
 
 .template-card {
-  background: #fff7ed;
-  border: 1.5px solid #fde8c8;
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-top: 3px solid var(--text);
+  border-radius: var(--radius);
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -1348,39 +1357,44 @@ textarea {
 
 .template-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow);
 }
 
 .template-card-emoji {
-  font-size: 1.6rem;
-  line-height: 1;
+  display: none;
 }
 
 .template-card-title {
+  font-family: 'Playfair Display', Georgia, serif;
   font-weight: 700;
-  font-size: 0.9rem;
-  color: #222;
+  font-size: 0.95rem;
+  color: var(--text);
   line-height: 1.3;
 }
 
 .template-card-count {
-  font-size: 0.75rem;
-  color: #888;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .template-card-btn {
   margin-top: auto;
-  background: #e63950;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.8rem;
+  background: transparent;
+  color: var(--text);
+  border: 1.5px solid var(--text);
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   align-self: flex-start;
+  letter-spacing: 0.3px;
+  transition: background 0.15s, color 0.15s;
 }
 
 .template-card-btn:hover {
-  background: #c72d41;
+  background: var(--text);
+  color: #fff;
 }
