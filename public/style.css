@@ -73,7 +73,13 @@ html, body {
   pointer-events: none;
 }
 .hero.small {
-  padding: 2rem 1.5rem 1.75rem;
+  padding: 0.75rem 1.5rem 1rem;
+}
+.hero.small .logo {
+  font-size: 1.4rem;
+}
+.hero.small .tagline {
+  display: none;
 }
 
 /* Decorative wavy divider at the bottom of hero */
