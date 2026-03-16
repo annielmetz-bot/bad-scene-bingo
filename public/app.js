@@ -75,9 +75,7 @@ function renderAccountBar() {
 
 async function signOut() {
   await fetch('/auth/logout', { method: 'POST' });
-  state.user = null;
-  renderAccountBar();
-  renderHomeSavedCards();
+  window.location.reload();
 }
 
 function escHtml(str) {
@@ -274,7 +272,7 @@ async function launchCard(title, items) {
     });
     if (!res.ok) throw new Error('Server error');
     const { roomId } = await res.json();
-    window.location.href = `/?room=${roomId}`;
+    window.location.href = `/?room=${roomId}&autoplay=1`;
   } catch {
     showToast('Could not launch — please try again.');
   }
@@ -968,10 +966,11 @@ async function init() {
     }
   }
 
-  const params   = new URLSearchParams(window.location.search);
-  const roomId   = params.get('room');
-  const collabId = params.get('collab');
+  const params    = new URLSearchParams(window.location.search);
+  const roomId    = params.get('room');
+  const collabId  = params.get('collab');
   const hostToken = params.get('host');
+  const autoplay  = params.get('autoplay') === '1';
 
   if (collabId) {
     state.collab.id        = collabId.toUpperCase();
@@ -1032,6 +1031,8 @@ async function init() {
     if (prefillName) {
       playerNameEl.value = prefillName;
       btnJoin.disabled = false;
+      // Auto-join when launched from "Play" on a saved card
+      if (autoplay) setTimeout(() => btnJoin.click(), 300);
     } else {
       playerNameEl.focus();
     }

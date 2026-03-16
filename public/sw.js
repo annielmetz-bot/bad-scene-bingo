@@ -1,4 +1,4 @@
-const CACHE = 'bsb-v8';
+const CACHE = 'bsb-v9';
 const SHELL = [
   '/',
   '/style.css',
@@ -23,11 +23,12 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Only cache GET requests; skip socket.io and API calls
+  // Only cache GET requests; skip socket.io, API, and auth calls
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
   if (url.pathname.startsWith('/socket.io')) return;
   if (url.pathname.startsWith('/api/')) return;
+  if (url.pathname.startsWith('/auth/')) return;
 
   e.respondWith(
     caches.match(e.request).then(cached => {
