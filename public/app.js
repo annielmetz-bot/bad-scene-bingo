@@ -594,61 +594,94 @@ btnCollabLaunch.addEventListener('click', () => {
   socket.emit('collab-launch', { collabId: state.collab.id, hostToken: state.collab.hostToken });
 });
 
+function makeCollabItem(item) {
+  const li = document.createElement('li');
+  li.className = 'collab-item' + (item.isOwn ? ' collab-item-own' : '');
+  li.dataset.id = item.id;
+
+  if (item.isOwn) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'collab-item-input-inline';
+    input.value = item.text;
+    input.maxLength = 120;
+
+    const saveEdit = () => {
+      const newText = input.value.trim();
+      if (newText && newText !== item.text) {
+        socket.emit('collab-edit-item', { collabId: state.collab.id, itemId: item.id, text: newText });
+      } else if (!newText) {
+        input.value = item.text;
+      }
+    };
+    input.addEventListener('blur', saveEdit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveEdit(); input.blur(); } });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-sm btn-delete collab-item-del';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Remove your item';
+    delBtn.addEventListener('click', () => {
+      socket.emit('collab-remove-item', { collabId: state.collab.id, itemId: item.id });
+    });
+
+    li.appendChild(input);
+    li.appendChild(delBtn);
+  } else {
+    const text = document.createElement('span');
+    text.className = 'collab-item-text';
+    text.textContent = item.text;
+
+    const by = document.createElement('span');
+    by.className = 'collab-item-by';
+    by.textContent = item.contributor;
+
+    li.appendChild(text);
+    li.appendChild(by);
+  }
+  return li;
+}
+
 function renderCollabItems() {
   const items = state.collab.items;
-  collabItemsList.innerHTML = '';
   collabItemCount.textContent = items.length;
   if (btnCollabLaunch) btnCollabLaunch.disabled = items.length < 8;
 
-  items.forEach(item => {
-    const li = document.createElement('li');
-    li.className = 'collab-item' + (item.isOwn ? ' collab-item-own' : '');
-    li.dataset.id = item.id;
+  const activeId = document.activeElement?.closest('[data-id]')?.dataset.id;
+  const activeVal = document.activeElement?.tagName === 'INPUT' ? document.activeElement.value : null;
 
-    if (item.isOwn) {
-      // Editable row
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'collab-item-input-inline';
-      input.value = item.text;
-      input.maxLength = 120;
-
-      const saveEdit = () => {
-        const newText = input.value.trim();
-        if (newText && newText !== item.text) {
-          socket.emit('collab-edit-item', { collabId: state.collab.id, itemId: item.id, text: newText });
-        } else if (!newText) {
-          input.value = item.text; // revert if empty
-        }
-      };
-      input.addEventListener('blur', saveEdit);
-      input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveEdit(); input.blur(); } });
-
-      const delBtn = document.createElement('button');
-      delBtn.className = 'btn btn-sm btn-delete collab-item-del';
-      delBtn.textContent = '✕';
-      delBtn.title = 'Remove your item';
-      delBtn.addEventListener('click', () => {
-        socket.emit('collab-remove-item', { collabId: state.collab.id, itemId: item.id });
-      });
-
-      li.appendChild(input);
-      li.appendChild(delBtn);
-    } else {
-      const text = document.createElement('span');
-      text.className = 'collab-item-text';
-      text.textContent = item.text;
-
-      const by = document.createElement('span');
-      by.className = 'collab-item-by';
-      by.textContent = item.contributor;
-
-      li.appendChild(text);
-      li.appendChild(by);
-    }
-
-    collabItemsList.appendChild(li);
+  // Remove rows that no longer exist
+  const currentIds = new Set(items.map(i => i.id));
+  collabItemsList.querySelectorAll('[data-id]').forEach(el => {
+    if (!currentIds.has(el.dataset.id)) el.remove();
   });
+
+  // Add or update each item in order
+  items.forEach((item, idx) => {
+    const existing = collabItemsList.querySelector(`[data-id="${item.id}"]`);
+    if (existing) {
+      // Update text for non-focused own items
+      if (item.id !== activeId) {
+        const input = existing.querySelector('input');
+        if (input) input.value = item.text;
+        const span = existing.querySelector('.collab-item-text');
+        if (span) span.textContent = item.text;
+      }
+      // Ensure correct position
+      const children = collabItemsList.children;
+      if (children[idx] !== existing) collabItemsList.insertBefore(existing, children[idx] || null);
+    } else {
+      const li = makeCollabItem(item);
+      const children = collabItemsList.children;
+      collabItemsList.insertBefore(li, children[idx] || null);
+    }
+  });
+
+  // Restore focus and value if interrupted by re-render
+  if (activeId && activeVal !== null) {
+    const el = collabItemsList.querySelector(`[data-id="${activeId}"] input`);
+    if (el && el !== document.activeElement) { el.focus(); el.value = activeVal; }
+  }
 }
 
 function updateCollabParticipants(count) {
