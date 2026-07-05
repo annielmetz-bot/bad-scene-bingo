@@ -598,7 +598,7 @@ const PORT = process.env.PORT || 3000;
 
 (async () => {
   if (db.pool) {
-    await db.initSchema();
+    try { await db.initSchema(); } catch (err) { console.error("DB init failed, running without database:", err.message); }
     // Restore active collab sessions from DB into memory
     const saved = await db.getAllCollabSessions().catch(() => []);
     for (const row of saved) {

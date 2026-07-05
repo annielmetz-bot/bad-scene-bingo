@@ -69,7 +69,8 @@
       "Bash(dig TXT _railway-verify.www.badscenebingo.com +short)",
       "Bash(curl -I http://www.badscenebingo.com)",
       "Bash(curl -I https://www.badscenebingo.com)",
-      "Bash(curl -Ik https://www.badscenebingo.com)"
+      "Bash(curl -Ik https://www.badscenebingo.com)",
+      "Bash(/Users/a.metz/.nvm/versions/node/v24.14.0/bin/node --check \"/Users/a.metz/Desktop/Bad Scene Bingo/server.js\")"
     ]
   }
 }
